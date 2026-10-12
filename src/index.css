@@ -1,0 +1,29 @@
+@layer arc, theme, base, components, utilities;
+
+@import "tailwindcss";
+@import "./components/arc/foundation.css" layer(arc);
+
+@theme {
+  --font-sans: "Inter", sans-serif;
+  --color-fondo: #0a0a0b;
+  --color-tarjeta: #18181a;
+  --color-borde: #2a2a2d;
+  --color-primario: #dc2626;
+  --color-acento: #f43f3f;
+}
+
+:root {
+  --font-display: "Inter", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --background: #0a0a0b;
+  --surface: #18181a;
+  --surface-muted: #2a2a2d;
+  --border: #2a2a2d;
+  --accent: #f43f3f;
+  --accent-strong: #ff6b6b;
+}
+
+body {
+  background-color: var(--color-fondo);
+  color: white;
+}
