@@ -659,6 +659,11 @@ app.use((error, req, res, next) => {
   res.status(error.status || 500).json({ mensaje: 'Ocurrió un error en el servidor.' })
 })
 
-app.listen(3001, () => {
-  console.log('API lista en http://localhost:3001')
-})
+// En Vercel la plataforma recibe las peticiones (ver api/index.js); en local escucha en el puerto 3001.
+if (!process.env.VERCEL) {
+  app.listen(3001, () => {
+    console.log('API lista en http://localhost:3001')
+  })
+}
+
+export default app
