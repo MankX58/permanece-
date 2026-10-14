@@ -59,7 +59,25 @@ function programaValido(programa) {
 
 // Catálogo vigente: el plan oficial de cada carrera más las materias que le agregaron los coordinadores.
 // "agregadas" dice cuáles no vienen del plan, para mostrarlas distinto y poder quitarlas.
+// La tabla se crea sola la primera vez, por si la base no ha pasado por "npm run db:setup".
+let tablaMaterias = null
+function asegurarTablaMaterias() {
+  tablaMaterias ??= sql`
+    CREATE TABLE IF NOT EXISTS carrera_materias (
+      carrera TEXT NOT NULL,
+      materia TEXT NOT NULL,
+      agregada_por TEXT,
+      PRIMARY KEY (carrera, materia)
+    )
+  `.catch((error) => {
+    tablaMaterias = null
+    throw error
+  })
+  return tablaMaterias
+}
+
 async function catalogo() {
+  await asegurarTablaMaterias()
   const filas = await sql`SELECT carrera, materia FROM carrera_materias ORDER BY materia`
 
   return carreras.map((carrera) => {
@@ -376,6 +394,7 @@ app.delete('/api/materias', soloCoordinacion, async (req, res) => {
     return res.status(400).json({ mensaje: error })
   }
 
+  await asegurarTablaMaterias()
   const borradas = await sql`
     DELETE FROM carrera_materias WHERE carrera = ${carrera} AND materia = ${materia}
     RETURNING materia
