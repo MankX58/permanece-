@@ -91,16 +91,20 @@ function App() {
     }
   }, [aviso])
 
+  // Devuelve si la acción salió bien, por si la página necesita limpiar un formulario.
   async function enviar(ruta, metodo, cuerpo, mensaje) {
     setOcupado(true)
+    let bien = false
     try {
       await api(ruta, metodo, cuerpo)
       await cargar()
       setAviso({ texto: mensaje, error: false })
+      bien = true
     } catch (e) {
       setAviso({ texto: e.message, error: true })
     }
     setOcupado(false)
+    return bien
   }
 
   function inscribir(id) {
@@ -157,6 +161,14 @@ function App() {
 
   function cambiarRol(id, rol, programa) {
     enviar('/usuarios/' + encodeURIComponent(id) + '/rol', 'PUT', { rol, programa }, 'Rol actualizado.')
+  }
+
+  function agregarMateria(carrera, materia) {
+    return enviar('/materias', 'POST', { carrera, materia }, materia + ' quedó en ' + carrera + '.')
+  }
+
+  function quitarMateria(carrera, materia) {
+    return enviar('/materias', 'DELETE', { carrera, materia }, materia + ' se quitó de ' + carrera + '.')
   }
 
   function marcarAsistencia(asesoriaId, usuarioId, asistio) {
@@ -222,6 +234,7 @@ function App() {
         verEnBanco={verEnBanco}
         valorar={valorar}
         abrirDetalle={setDetalleId}
+        catalogo={catalogo}
       />
     )
   } else if (pagina === 'mentores' && esMentor) {
@@ -239,6 +252,7 @@ function App() {
         agendarSolicitud={agendarSolicitud}
         editarAsesoria={editarAsesoria}
         guardarResumen={guardarResumen}
+        catalogo={catalogo}
       />
     )
   } else if (pagina === 'usuarios' && esAdmin) {
@@ -246,7 +260,9 @@ function App() {
   } else if (pagina === 'reportes' && (esAdmin || esCoordinador)) {
     contenido = <Reportes yo={yo} api={api} />
   } else if (pagina === 'materias' && (esAdmin || esCoordinador)) {
-    contenido = <Materias yo={yo} catalogo={catalogo} />
+    contenido = (
+      <Materias yo={yo} catalogo={catalogo} agregarMateria={agregarMateria} quitarMateria={quitarMateria} />
+    )
   } else if (pagina === 'ayuda') {
     contenido = <CentroAyuda verIntroduccion={() => setVerIntroduccion(true)} />
   } else {

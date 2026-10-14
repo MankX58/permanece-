@@ -99,6 +99,7 @@ function PortalMentores({
   liberarSolicitud,
   atenderSolicitud,
   agendarSolicitud,
+  catalogo,
 }) {
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [formulario, setFormulario] = useState(formularioVacio)
@@ -237,6 +238,7 @@ function PortalMentores({
           >
             <form onSubmit={publicar} className={claseCaja + ' mt-6'}>
               <SelectorMateria
+                catalogo={catalogo}
                 value={formulario.materia}
                 onChange={(materia) => cambiar('materia', materia)}
                 className={claseCampo}

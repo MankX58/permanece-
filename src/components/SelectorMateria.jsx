@@ -1,24 +1,26 @@
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Check } from 'lucide-react'
-import { carreras } from '../data.js'
 
 const LIMITE = 40
 
 // materia -> carreras donde se cursa, para listar cada materia una sola vez.
-const carrerasDe = new Map()
-carreras.forEach((carrera) => {
-  carrera.materias.forEach((materia) => {
-    if (!carrerasDe.has(materia)) carrerasDe.set(materia, [])
-    carrerasDe.get(materia).push(carrera.nombre)
+function indexar(carreras) {
+  const carrerasDe = new Map()
+  carreras.forEach((carrera) => {
+    carrera.materias.forEach((materia) => {
+      if (!carrerasDe.has(materia)) carrerasDe.set(materia, [])
+      carrerasDe.get(materia).push(carrera.nombre)
+    })
   })
-})
-const todas = [...carrerasDe.keys()].sort((a, b) => a.localeCompare(b, 'es'))
+  const todas = [...carrerasDe.keys()].sort((a, b) => a.localeCompare(b, 'es'))
+  return { carrerasDe, todas }
+}
 
 function normalizar(texto) {
   return texto.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 }
 
-function carreraGuardada() {
+function carreraGuardada(carreras) {
   try {
     const nombre = localStorage.getItem('carrera-materias')
     return carreras.some((carrera) => carrera.nombre === nombre) ? nombre : ''
@@ -31,12 +33,13 @@ function etiquetaCarreras(nombres) {
   return nombres.length <= 2 ? nombres.join(' · ') : nombres[0] + ' · +' + (nombres.length - 1)
 }
 
-// Combo de búsqueda: el valor solo puede ser una materia del catálogo.
-function SelectorMateria({ value, onChange, className = '' }) {
+// Combo de búsqueda: el valor solo puede ser una materia del catálogo vigente (incluye las que agregó coordinación).
+function SelectorMateria({ catalogo: carreras, value, onChange, className = '' }) {
   const [texto, setTexto] = useState('')
   const [abierto, setAbierto] = useState(false)
-  const [carrera, setCarrera] = useState(carreraGuardada)
+  const [carrera, setCarrera] = useState(() => carreraGuardada(carreras))
   const entrada = useRef(null)
+  const { carrerasDe, todas } = useMemo(() => indexar(carreras), [carreras])
 
   const buscado = normalizar(texto)
   const base = carrera ? carreras.find((c) => c.nombre === carrera).materias : todas

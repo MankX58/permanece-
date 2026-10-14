@@ -115,6 +115,15 @@ const coordinador = {
       ],
     },
     {
+      titulo: 'Las materias de tu programa',
+      texto: 'En Materias ves la lista de tu programa y puedes completarla:',
+      puntos: [
+        'Agregar una materia que ya se ve en otra carrera: queda compartida y suma en los reportes de ambas.',
+        'Crear una materia nueva si no existe en ninguna carrera.',
+        'Lo que agregues aparece enseguida al pedir o publicar asesorías.',
+      ],
+    },
+    {
       titulo: 'Cómo leer el informe',
       texto: 'Algunas definiciones para interpretar los números:',
       puntos: [
