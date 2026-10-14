@@ -73,6 +73,8 @@ await sql`
     PRIMARY KEY (carrera, materia)
   )
 `
+// quitada = true marca una materia del plan oficial que la coordinación sacó de la carrera (se puede restaurar).
+await sql`ALTER TABLE carrera_materias ADD COLUMN IF NOT EXISTS quitada BOOLEAN NOT NULL DEFAULT false`
 
 await sql`
   CREATE TABLE IF NOT EXISTS notificaciones (

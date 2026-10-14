@@ -3,13 +3,20 @@ import { useAuth0 } from '@auth0/auth0-react'
 export function useApi() {
   const { getIdTokenClaims } = useAuth0()
 
-  async function api(ruta, metodo = 'GET', datos) {
+  // Sin token guardado (sesión vencida o borrada) no tiene sentido llamar al servidor.
+  async function token() {
     const sesion = await getIdTokenClaims()
+    if (!sesion?.__raw) {
+      throw new Error('Tu sesión expiró. Cierra sesión y vuelve a entrar.')
+    }
+    return sesion.__raw
+  }
 
+  async function api(ruta, metodo = 'GET', datos) {
     const respuesta = await fetch('/api' + ruta, {
       method: metodo,
       headers: {
-        Authorization: 'Bearer ' + sesion.__raw,
+        Authorization: 'Bearer ' + (await token()),
         'Content-Type': 'application/json',
       },
       body: datos ? JSON.stringify(datos) : undefined,
@@ -35,9 +42,8 @@ export function useApi() {
 
   // Descarga un archivo del servidor (con la sesión del usuario) y lo guarda con el nombre que indica.
   api.descargar = async (ruta) => {
-    const sesion = await getIdTokenClaims()
     const respuesta = await fetch('/api' + ruta, {
-      headers: { Authorization: 'Bearer ' + sesion.__raw },
+      headers: { Authorization: 'Bearer ' + (await token()) },
     })
 
     if (!respuesta.ok) {

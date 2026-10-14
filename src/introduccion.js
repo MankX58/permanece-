@@ -116,11 +116,12 @@ const coordinador = {
     },
     {
       titulo: 'Las materias de tu programa',
-      texto: 'En Materias ves la lista de tu programa y puedes completarla:',
+      texto: 'En Materias mantienes al día la lista de tu programa:',
       puntos: [
-        'Agregar una materia que ya se ve en otra carrera: queda compartida y suma en los reportes de ambas.',
-        'Crear una materia nueva si no existe en ninguna carrera.',
-        'Lo que agregues aparece enseguida al pedir o publicar asesorías.',
+        'Agregar una materia que ya se ve en otra carrera (queda compartida) o crear una nueva.',
+        'Renombrar o quitar cualquier materia, incluidas las del plan oficial. Lo quitado se puede restaurar.',
+        'Las materias comunes con otras carreras aparecen agrupadas aparte, y ves cuánto se usa cada una.',
+        'Los cambios aparecen enseguida al pedir o publicar asesorías.',
       ],
     },
     {

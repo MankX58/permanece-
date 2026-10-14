@@ -3,6 +3,7 @@ import { auth } from 'express-oauth2-jwt-bearer'
 import { neon } from '@neondatabase/serverless'
 import { areas, carreras } from '../src/data.js'
 import { construirReporte, generarExcel } from './reportes.js'
+import { crearMaterias, ErrorDeMateria } from './materias.js'
 
 const sql = neon(process.env.DATABASE_URL)
 const app = express()
@@ -57,47 +58,10 @@ function programaValido(programa) {
   return carreras.some((carrera) => carrera.nombre === programa)
 }
 
-// Catálogo vigente: el plan oficial de cada carrera más las materias que le agregaron los coordinadores.
-// "agregadas" dice cuáles no vienen del plan, para mostrarlas distinto y poder quitarlas.
-// La tabla se crea sola la primera vez, por si la base no ha pasado por "npm run db:setup".
-let tablaMaterias = null
-function asegurarTablaMaterias() {
-  tablaMaterias ??= sql`
-    CREATE TABLE IF NOT EXISTS carrera_materias (
-      carrera TEXT NOT NULL,
-      materia TEXT NOT NULL,
-      agregada_por TEXT,
-      PRIMARY KEY (carrera, materia)
-    )
-  `.catch((error) => {
-    tablaMaterias = null
-    throw error
-  })
-  return tablaMaterias
-}
-
-async function catalogo() {
-  await asegurarTablaMaterias()
-  const filas = await sql`SELECT carrera, materia FROM carrera_materias ORDER BY materia`
-
-  return carreras.map((carrera) => {
-    const agregadas = filas.filter((fila) => fila.carrera === carrera.nombre).map((fila) => fila.materia)
-    return {
-      nombre: carrera.nombre,
-      materias: [...carrera.materias, ...agregadas],
-      agregadas,
-    }
-  })
-}
-
-async function materiaValida(materia) {
-  return (await catalogo()).some((carrera) => carrera.materias.includes(materia))
-}
-
-// Para comparar nombres de materias sin que importen tildes, mayúsculas ni espacios de más.
-function normalizar(texto) {
-  return texto.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim()
-}
+// Catálogo de materias por carrera (plan oficial ajustado por la coordinación): ver server/materias.js.
+const materias = crearMaterias(sql)
+const catalogo = materias.catalogo
+const materiaValida = materias.materiaValida
 
 async function notificar(usuario, texto) {
   if (usuario) {
@@ -354,55 +318,59 @@ function errorDeCarrera(req, carrera) {
   return null
 }
 
-// Suma una materia a la carrera: una que ya se ve en otra carrera o una nueva.
+// Responde 400 con el mensaje si la operación de materias falló por una regla; lo demás sigue al manejador general.
+async function conMaterias(res, operacion) {
+  try {
+    res.json((await operacion()) ?? { ok: true })
+  } catch (error) {
+    if (error instanceof ErrorDeMateria) {
+      return res.status(400).json({ mensaje: error.message })
+    }
+    throw error
+  }
+}
+
+// Suma una materia a la carrera: una que ya se ve en otra carrera, una nueva, o una del plan que se había quitado.
 app.post('/api/materias', soloCoordinacion, async (req, res) => {
   const carrera = String(req.body.carrera || '')
-  const nombre = String(req.body.materia || '').replace(/\s+/g, ' ').trim()
-
   const error = errorDeCarrera(req, carrera)
   if (error) {
     return res.status(400).json({ mensaje: error })
   }
-  if (nombre.length < 3 || nombre.length > 120) {
-    return res.status(400).json({ mensaje: 'El nombre de la materia debe tener entre 3 y 120 caracteres.' })
-  }
-
-  // Si ya existe en alguna carrera se usa su nombre exacto: así es la misma materia en búsquedas y reportes.
-  const vigente = await catalogo()
-  const existente = vigente.flatMap((c) => c.materias).find((materia) => normalizar(materia) === normalizar(nombre))
-  const materia = existente || nombre
-
-  if (vigente.find((c) => c.nombre === carrera).materias.includes(materia)) {
-    return res.status(400).json({ mensaje: materia + ' ya está en ' + carrera + '.' })
-  }
-
-  await sql`
-    INSERT INTO carrera_materias (carrera, materia, agregada_por)
-    VALUES (${carrera}, ${materia}, ${idUsuario(req)})
-    ON CONFLICT DO NOTHING
-  `
-  res.json({ materia, nueva: !existente })
+  await conMaterias(res, () => materias.agregar(carrera, req.body.materia, idUsuario(req)))
 })
 
-// Quita una materia agregada. Las del plan oficial no se pueden quitar desde aquí.
+// Saca una materia de la carrera, sea del plan oficial o agregada. El historial no se borra.
 app.delete('/api/materias', soloCoordinacion, async (req, res) => {
   const carrera = String(req.body.carrera || '')
-  const materia = String(req.body.materia || '')
-
   const error = errorDeCarrera(req, carrera)
   if (error) {
     return res.status(400).json({ mensaje: error })
   }
+  await conMaterias(res, () => materias.quitar(carrera, String(req.body.materia || ''), idUsuario(req)))
+})
 
-  await asegurarTablaMaterias()
-  const borradas = await sql`
-    DELETE FROM carrera_materias WHERE carrera = ${carrera} AND materia = ${materia}
-    RETURNING materia
-  `
-  if (borradas.length === 0) {
-    return res.status(400).json({ mensaje: 'Solo puedes quitar materias que se agregaron a la carrera.' })
+// Renombra una materia de la carrera (las reglas están en server/materias.js). Solo el admin puede pedir "enTodas".
+app.put('/api/materias', soloCoordinacion, async (req, res) => {
+  const carrera = String(req.body.carrera || '')
+  const error = errorDeCarrera(req, carrera)
+  if (error) {
+    return res.status(400).json({ mensaje: error })
   }
-  res.json({ ok: true })
+  const enTodas = req.body.enTodas === true && req.usuario.rol === 'admin'
+  await conMaterias(res, () =>
+    materias.renombrar(carrera, String(req.body.materia || ''), req.body.nuevo, idUsuario(req), enTodas)
+  )
+})
+
+// Cuánto se usa cada materia de la carrera, para decidir con datos antes de quitarla o renombrarla.
+app.get('/api/materias/uso', soloCoordinacion, async (req, res) => {
+  const carrera = String(req.query.carrera || '')
+  const error = errorDeCarrera(req, carrera)
+  if (error) {
+    return res.status(400).json({ mensaje: error })
+  }
+  res.json(await materias.uso(carrera))
 })
 
 app.post('/api/asesorias', soloMentores, async (req, res) => {

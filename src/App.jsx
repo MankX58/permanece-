@@ -29,6 +29,9 @@ function App() {
   const [datos, setDatos] = useState(null)
   const [ocupado, setOcupado] = useState(false)
   const [aviso, setAviso] = useState(null)
+  // Error de la carga inicial: a diferencia del aviso flotante, no se borra solo, para que la pantalla
+  // de carga lo siga mostrando (con la opción de cerrar sesión) hasta que la persona actúe.
+  const [errorCarga, setErrorCarga] = useState(null)
   const [verIntroduccion, setVerIntroduccion] = useState(false)
   const [introVistaLocal, setIntroVistaLocal] = useState(null)
   const inicioHecho = useRef(false)
@@ -58,11 +61,12 @@ function App() {
 
   async function cargar() {
     setDatos(await api('/datos'))
+    setErrorCarga(null)
   }
 
   useEffect(() => {
     if (isAuthenticated) {
-      cargar().catch((e) => setAviso({ texto: e.message, error: true }))
+      cargar().catch((e) => setErrorCarga(e.message))
     }
   }, [isAuthenticated])
 
@@ -72,7 +76,7 @@ function App() {
 
     function refrescar() {
       if (!document.hidden) {
-        cargar().catch(() => {})
+        cargar().catch((e) => setErrorCarga(e.message))
       }
     }
 
@@ -171,6 +175,10 @@ function App() {
     return enviar('/materias', 'DELETE', { carrera, materia }, materia + ' se quitó de ' + carrera + '.')
   }
 
+  function renombrarMateria(carrera, materia, nuevo, enTodas = false) {
+    return enviar('/materias', 'PUT', { carrera, materia, nuevo, enTodas }, '«' + materia + '» ahora es «' + nuevo + '».')
+  }
+
   function marcarAsistencia(asesoriaId, usuarioId, asistio) {
     enviar(
       '/asesorias/' + asesoriaId + '/asistencia/' + encodeURIComponent(usuarioId),
@@ -200,7 +208,7 @@ function App() {
   }
 
   if (!datos) {
-    return <Cargando error={aviso?.texto} />
+    return <Cargando error={errorCarga} />
   }
 
   const { yo, asesorias, solicitudes, usuarios, notificaciones, catalogo } = datos
@@ -261,7 +269,14 @@ function App() {
     contenido = <Reportes yo={yo} api={api} />
   } else if (pagina === 'materias' && (esAdmin || esCoordinador)) {
     contenido = (
-      <Materias yo={yo} catalogo={catalogo} agregarMateria={agregarMateria} quitarMateria={quitarMateria} />
+      <Materias
+        yo={yo}
+        api={api}
+        catalogo={catalogo}
+        agregarMateria={agregarMateria}
+        quitarMateria={quitarMateria}
+        renombrarMateria={renombrarMateria}
+      />
     )
   } else if (pagina === 'ayuda') {
     contenido = <CentroAyuda verIntroduccion={() => setVerIntroduccion(true)} />

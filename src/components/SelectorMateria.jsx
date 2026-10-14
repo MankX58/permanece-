@@ -29,8 +29,9 @@ function carreraGuardada(carreras) {
   }
 }
 
+// Una sola carrera: su nombre. Varias: se agrupa como materia común (la lista completa queda en el title).
 function etiquetaCarreras(nombres) {
-  return nombres.length <= 2 ? nombres.join(' · ') : nombres[0] + ' · +' + (nombres.length - 1)
+  return nombres.length === 1 ? nombres[0] : 'Común a ' + nombres.length + ' carreras'
 }
 
 // Combo de búsqueda: el valor solo puede ser una materia del catálogo vigente (incluye las que agregó coordinación).
@@ -131,7 +132,13 @@ function SelectorMateria({ catalogo: carreras, value, onChange, className = '' }
                 <span className="min-w-0">
                   <span className="block text-sm">{materia}</span>
                   {!carrera && (
-                    <span className="block truncate text-[11px] text-zinc-500">
+                    <span
+                      title={carrerasDe.get(materia).join('\n')}
+                      className={
+                        'block truncate text-[11px] ' +
+                        (carrerasDe.get(materia).length > 1 ? 'text-acento/80' : 'text-zinc-500')
+                      }
+                    >
                       {etiquetaCarreras(carrerasDe.get(materia))}
                     </span>
                   )}
