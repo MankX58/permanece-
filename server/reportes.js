@@ -1,20 +1,23 @@
 import ExcelJS from 'exceljs'
-import { carreras } from '../src/data.js'
+import { carreras as planOficial } from '../src/data.js'
 import { horasDe } from '../src/fechas.js'
 
-// Programas del catálogo donde se cursa cada materia (una materia compartida cuenta en cada uno).
-const programasDe = new Map()
-carreras.forEach((carrera) => {
-  carrera.materias.forEach((materia) => {
-    if (!programasDe.has(materia)) programasDe.set(materia, [])
-    programasDe.get(materia).push(carrera.nombre)
+// Programas donde se cursa cada materia (una materia compartida cuenta en cada uno).
+function mapaDeProgramas(carreras) {
+  const programasDe = new Map()
+  carreras.forEach((carrera) => {
+    carrera.materias.forEach((materia) => {
+      if (!programasDe.has(materia)) programasDe.set(materia, [])
+      programasDe.get(materia).push(carrera.nombre)
+    })
   })
-})
+  return programasDe
+}
 
-function filaVacia(materia) {
+function filaVacia(materia, programas = []) {
   return {
     materia,
-    programas: programasDe.get(materia) || [],
+    programas,
     realizadas: 0,
     programadas: 0,
     individuales: 0,
@@ -58,7 +61,11 @@ function sumar(filas) {
 
 // Cuenta asesorías, asistencia, valoración y demanda por materia dentro de un rango de fechas.
 // programa: nombre de una carrera del catálogo, o null para todo. desde/hasta: 'YYYY-MM-DD' o null.
-export async function construirReporte(sql, { desde = null, hasta = null, programa = null }) {
+// carreras: el catálogo vigente (plan oficial más las materias que agregaron los coordinadores).
+export async function construirReporte(sql, { desde = null, hasta = null, programa = null, carreras = planOficial }) {
+  const programasDe = mapaDeProgramas(carreras)
+  const vacia = (materia) => filaVacia(materia, programasDe.get(materia) || [])
+
   const sesiones = await sql`
     SELECT
       a.id, a.materia, to_char(a.fecha, 'YYYY-MM-DD') AS fecha, a.horario, a.privada, a.virtual, a.cupos, a.tutor,
@@ -88,7 +95,7 @@ export async function construirReporte(sql, { desde = null, hasta = null, progra
 
   const porMateria = new Map()
   const fila = (materia) => {
-    if (!porMateria.has(materia)) porMateria.set(materia, filaVacia(materia))
+    if (!porMateria.has(materia)) porMateria.set(materia, vacia(materia))
     return porMateria.get(materia)
   }
 
@@ -121,7 +128,7 @@ export async function construirReporte(sql, { desde = null, hasta = null, progra
   let universo
   if (programa) {
     const materias = carreras.find((carrera) => carrera.nombre === programa).materias
-    universo = materias.map((materia) => porMateria.get(materia) || filaVacia(materia))
+    universo = materias.map((materia) => porMateria.get(materia) || vacia(materia))
   } else {
     universo = [...porMateria.values()]
   }

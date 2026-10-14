@@ -63,6 +63,17 @@ await sql`ALTER TABLE inscripciones ADD COLUMN IF NOT EXISTS asistio BOOLEAN`
 await sql`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS programa TEXT`
 await sql`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS introduccion_vista TEXT`
 
+// Materias que los coordinadores suman a su carrera, aparte del plan oficial de src/data.js.
+// Puede ser una materia que ya se ve en otra carrera (mismo nombre) o una nueva.
+await sql`
+  CREATE TABLE IF NOT EXISTS carrera_materias (
+    carrera TEXT NOT NULL,
+    materia TEXT NOT NULL,
+    agregada_por TEXT,
+    PRIMARY KEY (carrera, materia)
+  )
+`
+
 await sql`
   CREATE TABLE IF NOT EXISTS notificaciones (
     id SERIAL PRIMARY KEY,

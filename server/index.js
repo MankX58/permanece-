@@ -49,6 +49,7 @@ function soloRoles(...roles) {
 const soloMentores = soloRoles('mentor', 'docente', 'admin')
 const soloAdmin = soloRoles('admin')
 const soloReportes = soloRoles('admin', 'coordinador')
+const soloCoordinacion = soloRoles('admin', 'coordinador')
 
 const ROLES = ['estudiante', 'mentor', 'docente', 'coordinador', 'admin']
 
@@ -56,8 +57,28 @@ function programaValido(programa) {
   return carreras.some((carrera) => carrera.nombre === programa)
 }
 
-function materiaValida(materia) {
-  return carreras.some((carrera) => carrera.materias.includes(materia))
+// Catálogo vigente: el plan oficial de cada carrera más las materias que le agregaron los coordinadores.
+// "agregadas" dice cuáles no vienen del plan, para mostrarlas distinto y poder quitarlas.
+async function catalogo() {
+  const filas = await sql`SELECT carrera, materia FROM carrera_materias ORDER BY materia`
+
+  return carreras.map((carrera) => {
+    const agregadas = filas.filter((fila) => fila.carrera === carrera.nombre).map((fila) => fila.materia)
+    return {
+      nombre: carrera.nombre,
+      materias: [...carrera.materias, ...agregadas],
+      agregadas,
+    }
+  })
+}
+
+async function materiaValida(materia) {
+  return (await catalogo()).some((carrera) => carrera.materias.includes(materia))
+}
+
+// Para comparar nombres de materias sin que importen tildes, mayúsculas ni espacios de más.
+function normalizar(texto) {
+  return texto.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim()
 }
 
 async function notificar(usuario, texto) {
@@ -188,14 +209,15 @@ app.get('/api/datos', async (req, res) => {
   const esMentor = ['mentor', 'docente', 'admin'].includes(yo.rol)
   const esAdmin = yo.rol === 'admin'
 
-  const [asesorias, solicitudes, notificaciones, usuarios] = await Promise.all([
+  const [asesorias, solicitudes, notificaciones, usuarios, materias] = await Promise.all([
     buscarAsesorias(yo.id),
     buscarSolicitudes(yo.id, esMentor),
     buscarNotificaciones(yo.id),
     esAdmin ? buscarUsuarios() : [],
+    catalogo(),
   ])
 
-  res.json({ yo, asesorias, solicitudes, notificaciones, usuarios })
+  res.json({ yo, asesorias, solicitudes, notificaciones, usuarios, catalogo: materias })
 })
 
 // Cambia el rol de un usuario. El coordinador lleva además el programa (carrera) que coordina.
@@ -281,7 +303,7 @@ app.get('/api/reportes', soloReportes, async (req, res) => {
     return res.status(400).json({ mensaje: 'Aún no tienes un programa asignado. Pídele al administrador que lo asigne.' })
   }
 
-  res.json(await construirReporte(sql, { desde, hasta, programa }))
+  res.json(await construirReporte(sql, { desde, hasta, programa, carreras: await catalogo() }))
 })
 
 app.get('/api/reportes/excel', soloReportes, async (req, res) => {
@@ -291,7 +313,7 @@ app.get('/api/reportes/excel', soloReportes, async (req, res) => {
     return res.status(400).json({ mensaje: 'Aún no tienes un programa asignado. Pídele al administrador que lo asigne.' })
   }
 
-  const reporte = await construirReporte(sql, { desde, hasta, programa })
+  const reporte = await construirReporte(sql, { desde, hasta, programa, carreras: await catalogo() })
   const archivo = await generarExcel(reporte, { generadoPor: req.usuario.nombre, rol: req.usuario.rol })
 
   const nombre = 'informe-asesorias' + (programa ? '-' + programa.toLowerCase().replace(/[^a-z0-9]+/g, '-') : '') + '.xlsx'
@@ -300,10 +322,74 @@ app.get('/api/reportes/excel', soloReportes, async (req, res) => {
   res.send(archivo)
 })
 
+// ------------------------------------------------------------------ Materias por carrera (admin y coordinador)
+
+// El coordinador solo cambia las materias de su programa; el admin, las de cualquiera.
+// Devuelve el mensaje de error, o null si puede.
+function errorDeCarrera(req, carrera) {
+  if (!programaValido(carrera)) {
+    return 'Esa carrera no existe en el catálogo.'
+  }
+  if (req.usuario.rol === 'coordinador' && carrera !== req.usuario.programa) {
+    return 'Solo puedes cambiar las materias de tu programa.'
+  }
+  return null
+}
+
+// Suma una materia a la carrera: una que ya se ve en otra carrera o una nueva.
+app.post('/api/materias', soloCoordinacion, async (req, res) => {
+  const carrera = String(req.body.carrera || '')
+  const nombre = String(req.body.materia || '').replace(/\s+/g, ' ').trim()
+
+  const error = errorDeCarrera(req, carrera)
+  if (error) {
+    return res.status(400).json({ mensaje: error })
+  }
+  if (nombre.length < 3 || nombre.length > 120) {
+    return res.status(400).json({ mensaje: 'El nombre de la materia debe tener entre 3 y 120 caracteres.' })
+  }
+
+  // Si ya existe en alguna carrera se usa su nombre exacto: así es la misma materia en búsquedas y reportes.
+  const vigente = await catalogo()
+  const existente = vigente.flatMap((c) => c.materias).find((materia) => normalizar(materia) === normalizar(nombre))
+  const materia = existente || nombre
+
+  if (vigente.find((c) => c.nombre === carrera).materias.includes(materia)) {
+    return res.status(400).json({ mensaje: materia + ' ya está en ' + carrera + '.' })
+  }
+
+  await sql`
+    INSERT INTO carrera_materias (carrera, materia, agregada_por)
+    VALUES (${carrera}, ${materia}, ${idUsuario(req)})
+    ON CONFLICT DO NOTHING
+  `
+  res.json({ materia, nueva: !existente })
+})
+
+// Quita una materia agregada. Las del plan oficial no se pueden quitar desde aquí.
+app.delete('/api/materias', soloCoordinacion, async (req, res) => {
+  const carrera = String(req.body.carrera || '')
+  const materia = String(req.body.materia || '')
+
+  const error = errorDeCarrera(req, carrera)
+  if (error) {
+    return res.status(400).json({ mensaje: error })
+  }
+
+  const borradas = await sql`
+    DELETE FROM carrera_materias WHERE carrera = ${carrera} AND materia = ${materia}
+    RETURNING materia
+  `
+  if (borradas.length === 0) {
+    return res.status(400).json({ mensaje: 'Solo puedes quitar materias que se agregaron a la carrera.' })
+  }
+  res.json({ ok: true })
+})
+
 app.post('/api/asesorias', soloMentores, async (req, res) => {
   const a = req.body
 
-  if (!materiaValida(a.materia)) {
+  if (!(await materiaValida(a.materia))) {
     return res.status(400).json({ mensaje: 'Elige una materia de la lista.' })
   }
 
@@ -513,7 +599,7 @@ app.put('/api/asesorias/:id/valoracion', async (req, res) => {
 app.post('/api/solicitudes', async (req, res) => {
   const s = req.body
 
-  if (!materiaValida(s.materia)) {
+  if (!(await materiaValida(s.materia))) {
     return res.status(400).json({ mensaje: 'Elige una materia de la lista.' })
   }
 
