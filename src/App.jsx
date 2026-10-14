@@ -14,6 +14,7 @@ import Usuarios from './pages/Usuarios.jsx'
 import CentroAyuda from './pages/CentroAyuda.jsx'
 import Calendario from './pages/Calendario.jsx'
 import Reportes from './pages/Reportes.jsx'
+import Materias from './pages/Materias.jsx'
 import DetalleAsesoria from './components/DetalleAsesoria.jsx'
 import Introduccion from './components/Introduccion.jsx'
 import { useApi } from './useApi.js'
@@ -190,7 +191,7 @@ function App() {
     return <Cargando error={aviso?.texto} />
   }
 
-  const { yo, asesorias, solicitudes, usuarios, notificaciones } = datos
+  const { yo, asesorias, solicitudes, usuarios, notificaciones, catalogo } = datos
   const esMentor = ['mentor', 'docente', 'admin'].includes(yo.rol)
   const esAdmin = yo.rol === 'admin'
   const esCoordinador = yo.rol === 'coordinador'
@@ -244,6 +245,8 @@ function App() {
     contenido = <Usuarios yo={yo} usuarios={usuarios} cambiarRol={cambiarRol} />
   } else if (pagina === 'reportes' && (esAdmin || esCoordinador)) {
     contenido = <Reportes yo={yo} api={api} />
+  } else if (pagina === 'materias' && (esAdmin || esCoordinador)) {
+    contenido = <Materias yo={yo} catalogo={catalogo} />
   } else if (pagina === 'ayuda') {
     contenido = <CentroAyuda verIntroduccion={() => setVerIntroduccion(true)} />
   } else {

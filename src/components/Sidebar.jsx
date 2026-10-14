@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   CircleHelp,
   GraduationCap,
+  Library,
 } from 'lucide-react'
 
 function Enlace({ id, texto, icono: Icono, pagina, setPagina }) {
@@ -62,7 +63,10 @@ function Sidebar({ pagina, setPagina, esMentor, esAdmin, esCoordinador }) {
   if (esAdmin || esCoordinador) {
     grupos.push({
       titulo: 'Coordinador',
-      enlaces: [{ id: 'reportes', texto: 'Reportes', icono: ChartColumn }],
+      enlaces: [
+        { id: 'reportes', texto: 'Reportes', icono: ChartColumn },
+        { id: 'materias', texto: 'Materias', icono: Library },
+      ],
     })
   }
   if (esAdmin) {
