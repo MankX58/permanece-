@@ -167,10 +167,6 @@ function App() {
     return enviar('/materias', 'POST', { carrera, materia }, materia + ' quedó en ' + carrera + '.')
   }
 
-  function quitarMateria(carrera, materia) {
-    return enviar('/materias', 'DELETE', { carrera, materia }, materia + ' se quitó de ' + carrera + '.')
-  }
-
   function marcarAsistencia(asesoriaId, usuarioId, asistio) {
     enviar(
       '/asesorias/' + asesoriaId + '/asistencia/' + encodeURIComponent(usuarioId),
@@ -260,9 +256,7 @@ function App() {
   } else if (pagina === 'reportes' && (esAdmin || esCoordinador)) {
     contenido = <Reportes yo={yo} api={api} />
   } else if (pagina === 'materias' && (esAdmin || esCoordinador)) {
-    contenido = (
-      <Materias yo={yo} catalogo={catalogo} agregarMateria={agregarMateria} quitarMateria={quitarMateria} />
-    )
+    contenido = <Materias yo={yo} catalogo={catalogo} agregarMateria={agregarMateria} />
   } else if (pagina === 'ayuda') {
     contenido = <CentroAyuda verIntroduccion={() => setVerIntroduccion(true)} />
   } else {
