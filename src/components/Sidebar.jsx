@@ -10,6 +10,7 @@ import {
   CircleHelp,
   GraduationCap,
   Library,
+  UserCog,
 } from 'lucide-react'
 
 function Enlace({ id, texto, icono: Icono, pagina, setPagina }) {
@@ -66,6 +67,7 @@ function Sidebar({ pagina, setPagina, esMentor, esAdmin, esCoordinador }) {
       enlaces: [
         { id: 'reportes', texto: 'Reportes', icono: ChartColumn },
         { id: 'materias', texto: 'Materias', icono: Library },
+        { id: 'especialidades', texto: 'Mentores y materias', icono: UserCog },
       ],
     })
   }

@@ -10,21 +10,23 @@ import {
   Clock,
   UserRound,
   ChevronRight,
+  CalendarClock,
 } from 'lucide-react'
 import SelectorMateria from '../components/SelectorMateria.jsx'
 import Valoracion from '../components/Valoracion.jsx'
 import CajaClicable from '../components/CajaClicable.jsx'
 import { urgencias } from '../data.js'
-import { fechaCorta, mesDe, diaDe, hace } from '../fechas.js'
+import { fechaCorta, fechaDeHoy, mesDe, diaDe, hace } from '../fechas.js'
 import { item, toque } from '../animaciones.js'
 
-const filtros = ['Todas', 'Pendientes', 'Aceptadas']
+const filtros = ['Todas', 'Pendientes', 'Por confirmar', 'Aceptadas']
 
 const claseInsignia = 'text-[10px] font-bold tracking-wide px-2.5 py-1 rounded-md border '
 const insignias = {
   pendiente: claseInsignia + 'bg-zinc-800 text-zinc-300 border-zinc-700',
   aceptada: claseInsignia + 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
   urgente: claseInsignia + 'bg-primario/10 text-acento border-primario/40',
+  confirmar: claseInsignia + 'bg-amber-500/10 text-amber-400 border-amber-500/40',
 }
 const claseDato = 'flex items-center gap-1.5 text-xs text-zinc-300 bg-fondo border border-borde rounded-lg px-2.5 py-1.5'
 
@@ -38,18 +40,26 @@ function MisSolicitudes({
   valorar,
   abrirDetalle,
   catalogo,
+  responderPropuesta,
 }) {
   const [materia, setMateria] = useState('')
   const [tema, setTema] = useState('')
   const [urgencia, setUrgencia] = useState(urgencias[1])
   const [filtro, setFiltro] = useState('Todas')
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
+  // Día y hora que el estudiante sugiere al pedir la asesoría.
+  const [sugerida, setSugerida] = useState({ fecha: '', inicio: '', fin: '' })
+  // Al rechazar una propuesta puede dejar un horario nuevo (opcional) para los demás mentores.
+  const [rechazando, setRechazando] = useState(null)
 
   const proximas = asesorias.filter((asesoria) => asesoria.inscrita && !asesoria.pasada)
   const mias = solicitudes.filter((solicitud) => solicitud.esMia).reverse()
+  // "Por confirmar": un mentor propuso otro horario y espera la respuesta del estudiante.
+  const esPropuesta = (solicitud) => Boolean(solicitud.propuesta) && !solicitud.asesoriaId
   const pendientes = mias.filter((solicitud) => !solicitud.aceptada)
-  const aceptadas = mias.filter((solicitud) => solicitud.aceptada)
-  const porFiltro = { Todas: mias, Pendientes: pendientes, Aceptadas: aceptadas }
+  const porConfirmar = mias.filter(esPropuesta)
+  const aceptadas = mias.filter((solicitud) => solicitud.aceptada && !esPropuesta(solicitud))
+  const porFiltro = { Todas: mias, Pendientes: pendientes, 'Por confirmar': porConfirmar, Aceptadas: aceptadas }
   const visibles = porFiltro[filtro]
 
   function disponibles(nombre) {
@@ -65,11 +75,20 @@ function MisSolicitudes({
 
   function enviar(e) {
     e.preventDefault()
-    agregarSolicitud({ materia, tema, urgencia })
+    agregarSolicitud({ materia, tema, urgencia, fecha: sugerida.fecha, horario: sugerida.inicio + ' - ' + sugerida.fin })
     setMateria('')
     setTema('')
+    setSugerida({ fecha: '', inicio: '', fin: '' })
     setFiltro('Todas')
     setMostrarFormulario(false)
+  }
+
+  async function rechazar(e) {
+    e.preventDefault()
+    const nueva = rechazando.fecha && rechazando.inicio && rechazando.fin
+      ? { fecha: rechazando.fecha, horario: rechazando.inicio + ' - ' + rechazando.fin }
+      : {}
+    if (await responderPropuesta(rechazando.id, false, nueva)) setRechazando(null)
   }
 
   function eliminar(solicitud, sesion) {
@@ -229,6 +248,37 @@ function MisSolicitudes({
               rows={2}
               className={claseCampo + ' md:col-span-2'}
             />
+            <div className="md:col-span-2">
+              <p className="text-xs text-zinc-400 mb-1.5">¿Cuándo te sirve? El mentor puede aceptarlo o proponerte otro horario.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <input
+                  required
+                  type="date"
+                  min={fechaDeHoy()}
+                  value={sugerida.fecha}
+                  onChange={(e) => setSugerida({ ...sugerida, fecha: e.target.value })}
+                  aria-label="Día que te sirve"
+                  className={claseCampo}
+                />
+                <input
+                  required
+                  type="time"
+                  value={sugerida.inicio}
+                  onChange={(e) => setSugerida({ ...sugerida, inicio: e.target.value })}
+                  aria-label="Hora de inicio"
+                  className={claseCampo}
+                />
+                <input
+                  required
+                  type="time"
+                  min={sugerida.inicio}
+                  value={sugerida.fin}
+                  onChange={(e) => setSugerida({ ...sugerida, fin: e.target.value })}
+                  aria-label="Hora de fin"
+                  className={claseCampo}
+                />
+              </div>
+            </div>
             <motion.button
               {...toque}
               className="md:col-start-2 justify-self-end bg-primario hover:bg-red-700 text-sm font-semibold px-5 py-2 rounded-lg"
@@ -255,9 +305,12 @@ function MisSolicitudes({
             const realizada = sesion?.pasada || (solicitud.atendida && !sesion)
             const urgente = solicitud.urgencia === urgencias[0] && !realizada
 
+            const propuesta = esPropuesta(solicitud) ? solicitud.propuesta : null
+
             let estado = 'PENDIENTE'
             if (realizada) estado = 'ATENDIDA'
             else if (sesion) estado = 'AGENDADA'
+            else if (propuesta) estado = 'POR CONFIRMAR'
             else if (solicitud.aceptada) estado = 'ACEPTADA'
 
             return (
@@ -271,13 +324,19 @@ function MisSolicitudes({
                 onClick={sesion ? () => abrirDetalle(sesion.id) : undefined}
                 className={
                   'bg-tarjeta border border-borde border-l-4 rounded-xl p-5 ' +
-                  (solicitud.aceptada ? 'border-l-emerald-500' : 'border-l-zinc-600')
+                  (propuesta ? 'border-l-amber-500' : solicitud.aceptada ? 'border-l-emerald-500' : 'border-l-zinc-600')
                 }
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className={solicitud.aceptada ? insignias.aceptada : insignias.pendiente}>{estado}</span>
+                      <span
+                        className={
+                          propuesta ? insignias.confirmar : solicitud.aceptada ? insignias.aceptada : insignias.pendiente
+                        }
+                      >
+                        {estado}
+                      </span>
                       {urgente && <span className={insignias.urgente}>URGENTE</span>}
                       <span className="flex items-center gap-1.5 text-xs text-zinc-500">
                         <CalendarDays size={13} />
@@ -293,6 +352,12 @@ function MisSolicitudes({
                         <Clock size={13} className="text-acento" />
                         {solicitud.urgencia}
                       </span>
+                      {solicitud.sugeridaFecha && !sesion && (
+                        <span className={claseDato}>
+                          <CalendarClock size={13} className="text-acento" />
+                          Sugeriste: {fechaCorta(solicitud.sugeridaFecha)}, {solicitud.sugeridaHorario}
+                        </span>
+                      )}
                       {solicitud.mentor && (
                         <span className={claseDato}>
                           <UserRound size={13} className="text-acento" />
@@ -320,7 +385,92 @@ function MisSolicitudes({
                   </button>
                 </div>
 
-                {solicitud.aceptada && (
+                {propuesta && (
+                  <div className="mt-4 bg-amber-500/5 border border-amber-500/30 rounded-xl p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="shrink-0 size-10 rounded-full bg-amber-500/15 text-amber-400 flex items-center justify-center">
+                        <CalendarClock size={18} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold">{solicitud.mentor} te propone otro horario</p>
+                        <p className="text-sm text-amber-300 mt-0.5 flex flex-wrap items-center gap-x-1.5">
+                          {fechaCorta(propuesta.fecha)}, {propuesta.horario} ·
+                          {propuesta.virtual ? <Video size={13} /> : <MapPin size={13} />}
+                          {propuesta.virtual ? 'Virtual' : propuesta.lugar}
+                        </p>
+                        <p className="text-xs text-zinc-500 mt-1">
+                          Si lo aceptas, queda agendada. Si no te sirve, la solicitud vuelve a estar disponible para otros mentores.
+                        </p>
+                      </div>
+                    </div>
+
+                    {rechazando?.id === solicitud.id ? (
+                      <form onSubmit={rechazar} className="mt-4 bg-fondo border border-borde rounded-xl p-3">
+                        <p className="text-xs text-zinc-400 mb-2">
+                          ¿Quieres sugerir otro horario? Es opcional; si lo dejas vacío se mantiene el que habías sugerido.
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                          <input
+                            type="date"
+                            min={fechaDeHoy()}
+                            value={rechazando.fecha}
+                            onChange={(e) => setRechazando({ ...rechazando, fecha: e.target.value })}
+                            aria-label="Nuevo día"
+                            className={claseCampo + ' bg-tarjeta'}
+                          />
+                          <input
+                            type="time"
+                            value={rechazando.inicio}
+                            onChange={(e) => setRechazando({ ...rechazando, inicio: e.target.value })}
+                            aria-label="Nueva hora de inicio"
+                            className={claseCampo + ' bg-tarjeta'}
+                          />
+                          <input
+                            type="time"
+                            min={rechazando.inicio}
+                            value={rechazando.fin}
+                            onChange={(e) => setRechazando({ ...rechazando, fin: e.target.value })}
+                            aria-label="Nueva hora de fin"
+                            className={claseCampo + ' bg-tarjeta'}
+                          />
+                        </div>
+                        <div className="flex justify-end gap-4 items-center mt-3">
+                          <button
+                            type="button"
+                            onClick={() => setRechazando(null)}
+                            className="text-xs font-medium text-zinc-400 hover:text-white"
+                          >
+                            Volver
+                          </button>
+                          <motion.button
+                            {...toque}
+                            className="text-xs font-bold border border-primario/50 text-acento hover:bg-primario/10 rounded-lg px-3.5 py-2"
+                          >
+                            Rechazar propuesta
+                          </motion.button>
+                        </div>
+                      </form>
+                    ) : (
+                      <div className="flex flex-wrap justify-end gap-3 mt-4">
+                        <button
+                          onClick={() => setRechazando({ id: solicitud.id, fecha: '', inicio: '', fin: '' })}
+                          className="text-xs font-semibold text-zinc-300 hover:text-white border border-borde rounded-lg px-3.5 py-2"
+                        >
+                          No me sirve
+                        </button>
+                        <motion.button
+                          {...toque}
+                          onClick={() => responderPropuesta(solicitud.id, true)}
+                          className="text-xs font-bold bg-primario hover:bg-red-700 rounded-lg px-3.5 py-2"
+                        >
+                          Aceptar horario
+                        </motion.button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {solicitud.aceptada && !propuesta && (
                   <div className="mt-4 flex items-center gap-3 bg-primario/5 border border-primario/20 rounded-xl p-3">
                     <div className="shrink-0 size-10 rounded-full bg-primario/20 text-acento flex items-center justify-center">
                       <UserRound size={18} />

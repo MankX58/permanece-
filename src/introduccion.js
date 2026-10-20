@@ -19,7 +19,7 @@ const estudiante = {
       texto: 'Todo está en el menú de la izquierda:',
       puntos: [
         'Banco de Asesorías: busca por materia e inscríbete en una sesión con cupo.',
-        'Mis Solicitudes: si no hay una asesoría de tu materia, pídela y un mentor la tomará.',
+        'Mis Solicitudes: si no hay una asesoría de tu materia, pídela y sugiere el día y la hora que te sirven.',
         'Calendario: tus sesiones del mes, con la fecha, el lugar o el enlace.',
         'La campana te avisa cuando un mentor agenda, cambia o cancela algo.',
       ],
@@ -37,9 +37,9 @@ const estudiante = {
       titulo: 'Cómo funciona una solicitud',
       texto: 'Desde que pides ayuda hasta que la recibes:',
       puntos: [
-        '1. Envías la solicitud eligiendo la materia y el tema.',
-        '2. Un mentor la acepta y agenda fecha, horario y modalidad.',
-        '3. Recibes el aviso y la sesión aparece en tu calendario.',
+        '1. Envías la solicitud con la materia, el tema y el día y hora que te sirven.',
+        '2. Un mentor acepta tu horario (queda agendada) o te propone otro.',
+        '3. Si te propone otro, lo aceptas o lo rechazas; si lo rechazas, vuelve a estar disponible para otros mentores.',
         '4. Asistes, lees la retroalimentación del mentor y valoras la sesión.',
       ],
     },
@@ -64,7 +64,8 @@ const mentor = {
       texto: 'En el Portal de Mentores:',
       puntos: [
         'Nueva Disponibilidad: publica una sesión en el banco con fecha, horario, cupos y modalidad.',
-        'Solicitudes disponibles: acepta las que puedas atender y luego agéndalas.',
+        'Solicitudes disponibles: respóndelas con el horario que sugirió el estudiante (queda agendada) o propón otro, que el estudiante confirma.',
+        'Solo ves y publicas asesorías de tus materias asignadas (si eres docente, las que dictas). Sin materias asignadas no puedes atender: pídeselas a tu coordinador.',
         'Programadas: edita, agrega el enlace de la reunión o cancela (se avisa a los inscritos).',
         'Historial: asistentes, reseñas y tu retroalimentación de cada sesión.',
       ],
@@ -122,6 +123,7 @@ const coordinador = {
         'Renombrar o quitar cualquier materia, incluidas las del plan oficial. Lo quitado se puede restaurar.',
         'Las materias comunes con otras carreras aparecen agrupadas aparte, y ves cuánto se usa cada una.',
         'Los cambios aparecen enseguida al pedir o publicar asesorías.',
+        'En Mentores y materias asignas a cada mentor y docente las materias de tu programa que puede atender (sin materias, no atiende).',
       ],
     },
     {
@@ -162,6 +164,7 @@ const admin = {
       texto: 'En el menú de la izquierda:',
       puntos: [
         'Usuarios y Roles: asigna mentor, docente, coordinador (con su programa) o administrador.',
+        'Mentores y materias: asigna a cada mentor y docente las materias que puede atender; sin materias no atiende ninguna.',
         'Reportes: asesorías, asistencia, valoración y demanda por materia y por programa.',
         'Descargar el informe completo, o el de un solo programa, en Excel.',
       ],

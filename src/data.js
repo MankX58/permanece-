@@ -348,6 +348,16 @@ export const preguntas = [
     respuesta: 'Al terminar cada sesión, abre su detalle y marca quién asistió. Con ese registro y las reseñas se arman los informes por materia; sin él, la sesión aparece como “sin registrar”.',
   },
   {
+    id: 10,
+    pregunta: '¿Cómo se acuerda el horario de una asesoría que pedí?',
+    respuesta: 'Al pedirla sugieres el día y la hora. El mentor puede aceptarlo (queda agendada) o proponerte otro horario. La propuesta aparece en Mis Solicitudes como «Por confirmar»: si la aceptas queda agendada; si no te sirve, la rechazas (puedes sugerir otro horario) y la solicitud vuelve a estar disponible para otros mentores.',
+  },
+  {
+    id: 11,
+    pregunta: 'Soy mentor o docente: ¿por qué solo veo algunas solicitudes?',
+    respuesta: 'Solo ves, aceptas y publicas asesorías de las materias que te asignó el coordinador o el administrador (si eres docente, las que dictas). Si no tienes ninguna, no puedes atender: pídeselas a tu coordinador. Tus materias aparecen en el Portal de Mentores.',
+  },
+  {
     id: 9,
     pregunta: '¿Quién ve los informes por materia y qué contienen?',
     respuesta: 'Los administradores ven todos los programas y los coordinadores solo el suyo. Son datos agregados (asesorías, asistencia, valoración y solicitudes por materia) y se pueden descargar en Excel; no incluyen nombres de estudiantes.',

@@ -4,6 +4,7 @@ import { neon } from '@neondatabase/serverless'
 import { areas, carreras } from '../src/data.js'
 import { construirReporte, generarExcel } from './reportes.js'
 import { crearMaterias, ErrorDeMateria } from './materias.js'
+import { crearAgenda, datosSesion, perfilDe, ErrorDeAgenda } from './agenda.js'
 
 const sql = neon(process.env.DATABASE_URL)
 const app = express()
@@ -63,62 +64,13 @@ const materias = crearMaterias(sql)
 const catalogo = materias.catalogo
 const materiaValida = materias.materiaValida
 
-async function notificar(usuario, texto) {
-  if (usuario) {
-    await sql`INSERT INTO notificaciones (usuario_id, texto) VALUES (${usuario}, ${texto})`
-  }
-}
+// Solicitudes y negociación del horario: ver server/agenda.js.
+const agenda = crearAgenda(sql, materias)
+const notificar = agenda.notificar
+const errorDeSesion = agenda.errorDeSesion
 
 function perfilTutor(req) {
-  const esDocente = req.usuario.rol === 'docente'
-  return {
-    rol: esDocente ? 'Docente Titular' : 'Mentor Voluntario',
-    tipo: esDocente ? 'Docente' : 'Voluntario',
-  }
-}
-
-// Normaliza los datos de una sesión: virtual no lleva lugar físico y presencial no lleva enlace.
-function datosSesion(s) {
-  const virtual = s.virtual === true
-  return {
-    fecha: s.fecha,
-    horario: s.horario,
-    virtual,
-    lugar: virtual ? 'Virtual' : String(s.lugar || '').trim(),
-    enlace: virtual && s.enlace ? String(s.enlace).trim() : null,
-  }
-}
-
-// Devuelve el mensaje de error de una sesión inválida, o null si está bien.
-async function errorDeSesion(sesion) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(sesion.fecha || '')) {
-    return 'Elige una fecha válida.'
-  }
-  if (!/^\d{2}:\d{2} - \d{2}:\d{2}$/.test(sesion.horario || '')) {
-    return 'Revisa la hora de inicio y de fin.'
-  }
-
-  const [inicio, fin] = sesion.horario.split(' - ')
-  if (fin <= inicio) {
-    return 'La hora de fin debe ser posterior a la de inicio.'
-  }
-  if (!sesion.virtual && !sesion.lugar) {
-    return 'Indica el lugar de la asesoría presencial.'
-  }
-  if (sesion.enlace && !/^https?:\/\/\S+$/i.test(sesion.enlace)) {
-    return 'El enlace debe empezar por http:// o https://.'
-  }
-
-  try {
-    const [{ futura }] = await sql`SELECT ${sesion.fecha}::date >= CURRENT_DATE AS futura`
-    return futura ? null : 'La fecha no puede ser anterior a hoy.'
-  } catch {
-    return 'Elige una fecha válida.'
-  }
-}
-
-function fechaLegible(fecha) {
-  return fecha.split('-').reverse().join('/')
+  return perfilDe(req.usuario.rol)
 }
 
 function buscarAsesorias(usuario) {
@@ -163,6 +115,9 @@ function buscarSolicitudes(usuario, esMentor) {
       COALESCE(s.mentor_id = ${usuario}, false) AS "aceptadaPorMi",
       s.atendida_en IS NOT NULL AS atendida,
       s.asesoria_id AS "asesoriaId",
+      to_char(s.sugerida_fecha, 'YYYY-MM-DD') AS "sugeridaFecha",
+      s.sugerida_horario AS "sugeridaHorario",
+      CASE WHEN s.usuario_id = ${usuario} OR s.mentor_id = ${usuario} THEN s.propuesta END AS propuesta,
       to_char(s.creada_en AT TIME ZONE 'America/Bogota', 'YYYY-MM-DD') AS creada,
       to_char(s.atendida_en AT TIME ZONE 'America/Bogota', 'YYYY-MM-DD') AS "atendidaEn",
       m.nombre AS mentor
@@ -191,15 +146,28 @@ app.get('/api/datos', async (req, res) => {
   const esMentor = ['mentor', 'docente', 'admin'].includes(yo.rol)
   const esAdmin = yo.rol === 'admin'
 
-  const [asesorias, solicitudes, notificaciones, usuarios, materias] = await Promise.all([
+  const esCoordinacion = esAdmin || yo.rol === 'coordinador'
+
+  const [asesorias, solicitudes, notificaciones, usuarios, vigente, asignadas, mentores] = await Promise.all([
     buscarAsesorias(yo.id),
     buscarSolicitudes(yo.id, esMentor),
     buscarNotificaciones(yo.id),
     esAdmin ? buscarUsuarios() : [],
     catalogo(),
+    ['mentor', 'docente'].includes(yo.rol) ? materias.asignadasA(yo.id) : null,
+    esCoordinacion ? materias.mentoresConMaterias() : [],
   ])
 
-  res.json({ yo, asesorias, solicitudes, notificaciones, usuarios, catalogo: materias })
+  // materiasAsignadas: lista de materias que el mentor o docente puede atender; null = sin restricción (admin).
+  res.json({
+    yo: { ...yo, materiasAsignadas: asignadas },
+    asesorias,
+    solicitudes,
+    notificaciones,
+    usuarios,
+    catalogo: vigente,
+    mentores,
+  })
 })
 
 // Cambia el rol de un usuario. El coordinador lleva además el programa (carrera) que coordina.
@@ -318,18 +286,6 @@ function errorDeCarrera(req, carrera) {
   return null
 }
 
-// Responde 400 con el mensaje si la operación de materias falló por una regla; lo demás sigue al manejador general.
-async function conMaterias(res, operacion) {
-  try {
-    res.json((await operacion()) ?? { ok: true })
-  } catch (error) {
-    if (error instanceof ErrorDeMateria) {
-      return res.status(400).json({ mensaje: error.message })
-    }
-    throw error
-  }
-}
-
 // Suma una materia a la carrera: una que ya se ve en otra carrera, una nueva, o una del plan que se había quitado.
 app.post('/api/materias', soloCoordinacion, async (req, res) => {
   const carrera = String(req.body.carrera || '')
@@ -337,7 +293,7 @@ app.post('/api/materias', soloCoordinacion, async (req, res) => {
   if (error) {
     return res.status(400).json({ mensaje: error })
   }
-  await conMaterias(res, () => materias.agregar(carrera, req.body.materia, idUsuario(req)))
+  await conRegla(res, () => materias.agregar(carrera, req.body.materia, idUsuario(req)))
 })
 
 // Saca una materia de la carrera, sea del plan oficial o agregada. El historial no se borra.
@@ -347,7 +303,7 @@ app.delete('/api/materias', soloCoordinacion, async (req, res) => {
   if (error) {
     return res.status(400).json({ mensaje: error })
   }
-  await conMaterias(res, () => materias.quitar(carrera, String(req.body.materia || ''), idUsuario(req)))
+  await conRegla(res, () => materias.quitar(carrera, String(req.body.materia || ''), idUsuario(req)))
 })
 
 // Renombra una materia de la carrera (las reglas están en server/materias.js). Solo el admin puede pedir "enTodas".
@@ -358,7 +314,7 @@ app.put('/api/materias', soloCoordinacion, async (req, res) => {
     return res.status(400).json({ mensaje: error })
   }
   const enTodas = req.body.enTodas === true && req.usuario.rol === 'admin'
-  await conMaterias(res, () =>
+  await conRegla(res, () =>
     materias.renombrar(carrera, String(req.body.materia || ''), req.body.nuevo, idUsuario(req), enTodas)
   )
 })
@@ -378,6 +334,11 @@ app.post('/api/asesorias', soloMentores, async (req, res) => {
 
   if (!(await materiaValida(a.materia))) {
     return res.status(400).json({ mensaje: 'Elige una materia de la lista.' })
+  }
+  if (!(await materias.puedeAtender(req.usuario, a.materia))) {
+    return res.status(400).json({
+      mensaje: 'Solo puedes publicar asesorías de las materias que tienes asignadas. Si no tienes ninguna, pídeselas a tu coordinador.',
+    })
   }
 
   const cupos = Number(a.cupos)
@@ -583,26 +544,21 @@ app.put('/api/asesorias/:id/valoracion', async (req, res) => {
   res.json({ ok: true })
 })
 
-app.post('/api/solicitudes', async (req, res) => {
-  const s = req.body
-
-  if (!(await materiaValida(s.materia))) {
-    return res.status(400).json({ mensaje: 'Elige una materia de la lista.' })
+// Responde 400 con el mensaje si la operación falló por una regla de negocio; lo demás sigue al manejador general.
+async function conRegla(res, operacion) {
+  try {
+    res.json((await operacion()) ?? { ok: true })
+  } catch (error) {
+    if (error instanceof ErrorDeAgenda || error instanceof ErrorDeMateria) {
+      return res.status(400).json({ mensaje: error.message })
+    }
+    throw error
   }
+}
 
-  await sql`
-    INSERT INTO solicitudes (usuario_id, estudiante, materia, tema, urgencia)
-    VALUES (${idUsuario(req)}, ${req.usuario.nombre}, ${s.materia}, ${s.tema}, ${s.urgencia})
-  `
-
-  // Los mentores y docentes se enteran de que hay una solicitud nueva.
-  await sql`
-    INSERT INTO notificaciones (usuario_id, texto)
-    SELECT id, ${'Nueva solicitud de ' + s.materia + ' (' + s.urgencia.toLowerCase() + ').'}::text
-    FROM usuarios
-    WHERE rol IN ('mentor', 'docente', 'admin') AND id <> ${idUsuario(req)}
-  `
-  res.json({ ok: true })
+// El estudiante pide una asesoría y sugiere día y hora.
+app.post('/api/solicitudes', async (req, res) => {
+  await conRegla(res, () => agenda.crearSolicitud(req.usuario, req.body))
 })
 
 app.delete('/api/solicitudes/:id', async (req, res) => {
@@ -625,34 +581,26 @@ app.delete('/api/solicitudes/:id', async (req, res) => {
   res.json({ ok: true })
 })
 
+// El mentor acepta el horario que sugirió el estudiante: queda agendada de una vez.
+// Cuerpo: { area, virtual, lugar, enlace }.
 app.post('/api/solicitudes/:id/aceptar', soloMentores, async (req, res) => {
-  const usuario = idUsuario(req)
-  const [solicitud] = await sql`
-    UPDATE solicitudes
-    SET mentor_id = ${usuario}
-    WHERE id = ${req.params.id} AND mentor_id IS NULL AND usuario_id IS DISTINCT FROM ${usuario}
-    RETURNING usuario_id, materia
-  `
-
-  if (!solicitud) {
-    return res.status(400).json({ mensaje: 'Esa solicitud ya no está disponible.' })
-  }
-
-  await notificar(solicitud.usuario_id, req.usuario.nombre + ' aceptó tu solicitud de ' + solicitud.materia + '.')
-  res.json({ ok: true })
+  await conRegla(res, () => agenda.aceptarSugerencia(req.params.id, req.usuario, req.body))
 })
 
+// El mentor propone otro horario; el estudiante debe aceptarlo. Cuerpo: { area, fecha, horario, virtual, lugar, enlace }.
+app.post('/api/solicitudes/:id/proponer', soloMentores, async (req, res) => {
+  await conRegla(res, () => agenda.proponer(req.params.id, req.usuario, req.body))
+})
+
+// El estudiante acepta o rechaza la propuesta. Cuerpo: { acepta, fecha?, horario? } (horario nuevo al rechazar).
+app.post('/api/solicitudes/:id/responder', async (req, res) => {
+  const sugerencia = req.body.fecha ? { fecha: req.body.fecha, horario: req.body.horario } : null
+  await conRegla(res, () => agenda.responder(req.params.id, req.usuario, req.body.acepta === true, sugerencia))
+})
+
+// El mentor suelta la solicitud o retira su propuesta: vuelve a estar disponible.
 app.post('/api/solicitudes/:id/liberar', soloMentores, async (req, res) => {
-  const [solicitud] = await sql`
-    UPDATE solicitudes
-    SET mentor_id = NULL
-    WHERE id = ${req.params.id} AND mentor_id = ${idUsuario(req)} AND atendida_en IS NULL AND asesoria_id IS NULL
-    RETURNING usuario_id, materia
-  `
-  if (solicitud) {
-    await notificar(solicitud.usuario_id, 'Tu solicitud de ' + solicitud.materia + ' volvió a quedar pendiente.')
-  }
-  res.json({ ok: true })
+  await conRegla(res, () => agenda.liberar(req.params.id, req.usuario))
 })
 
 // Resolver una solicitud sin sesión programada (por ejemplo, ya se respondió por chat).
@@ -672,54 +620,27 @@ app.post('/api/solicitudes/:id/atender', soloMentores, async (req, res) => {
   res.json({ ok: true })
 })
 
-// Agendar una solicitud aceptada: crea una sesión individual (asesoría privada de un cupo) para el estudiante.
-app.post('/api/solicitudes/:id/agendar', soloMentores, async (req, res) => {
-  const [solicitud] = await sql`
-    SELECT usuario_id, materia, tema FROM solicitudes
-    WHERE id = ${req.params.id} AND mentor_id = ${idUsuario(req)} AND asesoria_id IS NULL AND atendida_en IS NULL
-  `
+// ------------------------------------------------------------------ Materias asignadas a los mentores estudiantes
 
-  if (!solicitud) {
-    return res.status(400).json({ mensaje: 'Esa solicitud no está en tu lista por agendar.' })
-  }
-  if (!solicitud.usuario_id) {
-    return res.status(400).json({ mensaje: 'Esta solicitud no tiene un estudiante registrado para agendar.' })
-  }
-  if (!areas.includes(req.body.area)) {
-    return res.status(400).json({ mensaje: 'Elige el área de la asesoría.' })
-  }
+// El coordinador solo asigna y quita materias de su programa; el admin, cualquiera.
+function carreraPermitida(req) {
+  return req.usuario.rol === 'coordinador' ? req.usuario.programa || '' : null
+}
 
-  const sesion = datosSesion(req.body)
-  const error = await errorDeSesion(sesion)
-  if (error) {
-    return res.status(400).json({ mensaje: error })
-  }
+app.post('/api/mentores/:id/materias', soloCoordinacion, async (req, res) => {
+  const materia = String(req.body.materia || '')
+  await conRegla(res, async () => {
+    await materias.asignar(req.params.id, materia, idUsuario(req), carreraPermitida(req))
+    await notificar(req.params.id, 'Ahora atiendes ' + materia + '. Verás sus solicitudes y podrás publicar asesorías de esa materia.')
+  })
+})
 
-  const { rol, tipo } = perfilTutor(req)
-
-  await sql`
-    WITH nueva AS (
-      INSERT INTO asesorias (tutor_id, tutor, rol, tipo, area, materia, descripcion, fecha, horario, lugar, virtual, enlace, cupos, privada)
-      VALUES (${idUsuario(req)}, ${req.usuario.nombre}, ${rol}, ${tipo}, ${req.body.area}, ${solicitud.materia}, ${solicitud.tema}, ${sesion.fecha}, ${sesion.horario}, ${sesion.lugar}, ${sesion.virtual}, ${sesion.enlace}, 1, true)
-      RETURNING id
-    ), inscrito AS (
-      INSERT INTO inscripciones (usuario_id, asesoria_id)
-      SELECT ${solicitud.usuario_id}::text, id FROM nueva
-    )
-    UPDATE solicitudes SET asesoria_id = (SELECT id FROM nueva) WHERE id = ${req.params.id}
-  `
-
-  const donde = sesion.virtual
-    ? sesion.enlace
-      ? 'virtual (enlace en tu portal)'
-      : 'virtual (el mentor compartirá el enlace)'
-    : 'en ' + sesion.lugar
-  await notificar(
-    solicitud.usuario_id,
-    req.usuario.nombre + ' agendó tu asesoría de ' + solicitud.materia + ': ' +
-      fechaLegible(sesion.fecha) + ', ' + sesion.horario + ', ' + donde + '.'
-  )
-  res.json({ ok: true })
+app.delete('/api/mentores/:id/materias', soloCoordinacion, async (req, res) => {
+  const materia = String(req.body.materia || '')
+  await conRegla(res, async () => {
+    await materias.desasignar(req.params.id, materia, carreraPermitida(req))
+    await notificar(req.params.id, 'Ya no tienes asignada ' + materia + '.')
+  })
 })
 
 app.post('/api/notificaciones/leidas', async (req, res) => {

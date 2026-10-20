@@ -76,6 +76,22 @@ await sql`
 // quitada = true marca una materia del plan oficial que la coordinación sacó de la carrera (se puede restaurar).
 await sql`ALTER TABLE carrera_materias ADD COLUMN IF NOT EXISTS quitada BOOLEAN NOT NULL DEFAULT false`
 
+// Materias que puede atender cada mentor estudiante. Sin filas, el mentor atiende cualquier materia.
+await sql`
+  CREATE TABLE IF NOT EXISTS mentor_materias (
+    mentor_id TEXT NOT NULL,
+    materia TEXT NOT NULL,
+    asignada_por TEXT,
+    PRIMARY KEY (mentor_id, materia)
+  )
+`
+
+// Horario negociado: el estudiante sugiere día y hora; el mentor puede proponer otro (propuesta), que el
+// estudiante acepta o rechaza. propuesta guarda { fecha, horario, virtual, lugar, enlace, area }.
+await sql`ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS sugerida_fecha DATE`
+await sql`ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS sugerida_horario TEXT`
+await sql`ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS propuesta JSONB`
+
 await sql`
   CREATE TABLE IF NOT EXISTS notificaciones (
     id SERIAL PRIMARY KEY,

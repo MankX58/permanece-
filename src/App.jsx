@@ -15,6 +15,7 @@ import CentroAyuda from './pages/CentroAyuda.jsx'
 import Calendario from './pages/Calendario.jsx'
 import Reportes from './pages/Reportes.jsx'
 import Materias from './pages/Materias.jsx'
+import EspecialidadMentores from './pages/EspecialidadMentores.jsx'
 import DetalleAsesoria from './components/DetalleAsesoria.jsx'
 import Introduccion from './components/Introduccion.jsx'
 import { useApi } from './useApi.js'
@@ -135,8 +136,23 @@ function App() {
     enviar('/solicitudes/' + id, 'DELETE', null, 'Solicitud eliminada.')
   }
 
-  function aceptarSolicitud(id) {
-    enviar('/solicitudes/' + id + '/aceptar', 'POST', null, 'Solicitud aceptada.')
+  // El mentor acepta el horario que sugirió el estudiante (queda agendada) o propone otro (el estudiante decide).
+  function aceptarSolicitud(id, datos) {
+    return enviar('/solicitudes/' + id + '/aceptar', 'POST', datos, 'Asesoría agendada con el horario sugerido. Se avisó al estudiante.')
+  }
+
+  function proponerHorario(id, datos) {
+    return enviar('/solicitudes/' + id + '/proponer', 'POST', datos, 'Propuesta enviada. El estudiante debe aceptarla.')
+  }
+
+  // El estudiante acepta la propuesta (queda agendada) o la rechaza (vuelve a estar disponible).
+  function responderPropuesta(id, acepta, sugerencia = {}) {
+    return enviar(
+      '/solicitudes/' + id + '/responder',
+      'POST',
+      { acepta, ...sugerencia },
+      acepta ? 'Horario aceptado: la asesoría quedó agendada.' : 'Propuesta rechazada. Tu solicitud volvió a estar disponible.'
+    )
   }
 
   function editarAsesoria(id, datos) {
@@ -147,16 +163,12 @@ function App() {
     enviar('/asesorias/' + id + '/resumen', 'PUT', { resumen }, 'Retroalimentación guardada y enviada.')
   }
 
-  function agendarSolicitud(id, datos) {
-    enviar('/solicitudes/' + id + '/agendar', 'POST', datos, 'Sesión agendada. Se avisó al estudiante.')
-  }
-
   function atenderSolicitud(id) {
     enviar('/solicitudes/' + id + '/atender', 'POST', null, 'Solicitud marcada como atendida.')
   }
 
   function liberarSolicitud(id) {
-    enviar('/solicitudes/' + id + '/liberar', 'POST', null, 'La solicitud volvió a quedar pendiente.')
+    enviar('/solicitudes/' + id + '/liberar', 'POST', null, 'La solicitud volvió a estar disponible.')
   }
 
   function valorar(id, valoracion, comentario) {
@@ -177,6 +189,14 @@ function App() {
 
   function renombrarMateria(carrera, materia, nuevo, enTodas = false) {
     return enviar('/materias', 'PUT', { carrera, materia, nuevo, enTodas }, '«' + materia + '» ahora es «' + nuevo + '».')
+  }
+
+  function asignarMateriaMentor(mentorId, materia) {
+    return enviar('/mentores/' + encodeURIComponent(mentorId) + '/materias', 'POST', { materia }, materia + ' quedó asignada.')
+  }
+
+  function quitarMateriaMentor(mentorId, materia) {
+    return enviar('/mentores/' + encodeURIComponent(mentorId) + '/materias', 'DELETE', { materia }, materia + ' ya no está asignada.')
   }
 
   function marcarAsistencia(asesoriaId, usuarioId, asistio) {
@@ -211,7 +231,7 @@ function App() {
     return <Cargando error={errorCarga} />
   }
 
-  const { yo, asesorias, solicitudes, usuarios, notificaciones, catalogo } = datos
+  const { yo, asesorias, solicitudes, usuarios, notificaciones, catalogo, mentores } = datos
   const esMentor = ['mentor', 'docente', 'admin'].includes(yo.rol)
   const esAdmin = yo.rol === 'admin'
   const esCoordinador = yo.rol === 'coordinador'
@@ -243,6 +263,7 @@ function App() {
         valorar={valorar}
         abrirDetalle={setDetalleId}
         catalogo={catalogo}
+        responderPropuesta={responderPropuesta}
       />
     )
   } else if (pagina === 'mentores' && esMentor) {
@@ -255,9 +276,9 @@ function App() {
         eliminarAsesoria={eliminarAsesoria}
         solicitudes={solicitudes}
         aceptarSolicitud={aceptarSolicitud}
+        proponerHorario={proponerHorario}
         liberarSolicitud={liberarSolicitud}
         atenderSolicitud={atenderSolicitud}
-        agendarSolicitud={agendarSolicitud}
         editarAsesoria={editarAsesoria}
         guardarResumen={guardarResumen}
         catalogo={catalogo}
@@ -276,6 +297,16 @@ function App() {
         agregarMateria={agregarMateria}
         quitarMateria={quitarMateria}
         renombrarMateria={renombrarMateria}
+      />
+    )
+  } else if (pagina === 'especialidades' && (esAdmin || esCoordinador)) {
+    contenido = (
+      <EspecialidadMentores
+        yo={yo}
+        mentores={mentores || []}
+        catalogo={catalogo}
+        asignar={asignarMateriaMentor}
+        quitar={quitarMateriaMentor}
       />
     )
   } else if (pagina === 'ayuda') {

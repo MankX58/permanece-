@@ -45,6 +45,14 @@ export function crearMaterias(sql) {
         )
       `
       await sql`ALTER TABLE carrera_materias ADD COLUMN IF NOT EXISTS quitada BOOLEAN NOT NULL DEFAULT false`
+      await sql`
+        CREATE TABLE IF NOT EXISTS mentor_materias (
+          mentor_id TEXT NOT NULL,
+          materia TEXT NOT NULL,
+          asignada_por TEXT,
+          PRIMARY KEY (mentor_id, materia)
+        )
+      `
     })().catch((error) => {
       tabla = null
       throw error
@@ -171,6 +179,13 @@ export function crearMaterias(sql) {
     if (global) {
       consultas.push(sql`UPDATE asesorias SET materia = ${nuevo} WHERE materia = ${materia}`)
       consultas.push(sql`UPDATE solicitudes SET materia = ${nuevo} WHERE materia = ${materia}`)
+      // Los mentores que tenían asignada la materia la siguen teniendo con el nombre nuevo.
+      consultas.push(sql`
+        INSERT INTO mentor_materias (mentor_id, materia, asignada_por)
+        SELECT mentor_id, ${nuevo}, asignada_por FROM mentor_materias WHERE materia = ${materia}
+        ON CONFLICT DO NOTHING
+      `)
+      consultas.push(sql`DELETE FROM mentor_materias WHERE materia = ${materia}`)
     }
 
     await sql.transaction(consultas)
@@ -193,5 +208,101 @@ export function crearMaterias(sql) {
     return Object.fromEntries(filas.map((fila) => [fila.materia, fila]))
   }
 
-  return { catalogo, materiaValida, agregar, quitar, renombrar, uso }
+  // ---------------------------------------------------------- Materias que atiende cada mentor o docente
+  // Mentores estudiantes y docentes solo atienden las materias que tienen asignadas (las que dominan o en las
+  // que dan clase). Sin materias asignadas no atienden ninguna. El admin no tiene restricción.
+  const ROLES_CON_MATERIAS = ['mentor', 'docente']
+
+  // Materias asignadas a un usuario (lista vacía si no tiene).
+  async function asignadasA(usuarioId) {
+    await asegurarTabla()
+    const filas = await sql`SELECT materia FROM mentor_materias WHERE mentor_id = ${usuarioId} ORDER BY materia`
+    return filas.map((fila) => fila.materia)
+  }
+
+  // null = puede atender cualquier materia (admin); si no, la lista de las que puede atender (puede estar vacía).
+  async function alcanceDe(usuario) {
+    if (!ROLES_CON_MATERIAS.includes(usuario.rol)) return null
+    return asignadasA(usuario.id)
+  }
+
+  async function puedeAtender(usuario, materia) {
+    const alcance = await alcanceDe(usuario)
+    return alcance === null || alcance.includes(materia)
+  }
+
+  // Mentores y docentes con sus materias asignadas, para la pantalla de asignación.
+  async function mentoresConMaterias() {
+    await asegurarTabla()
+    return sql`
+      SELECT u.id, u.nombre, u.email, u.rol,
+        COALESCE(ARRAY_AGG(mm.materia ORDER BY mm.materia) FILTER (WHERE mm.materia IS NOT NULL), '{}'::text[]) AS materias
+      FROM usuarios u
+      LEFT JOIN mentor_materias mm ON mm.mentor_id = u.id
+      WHERE u.rol IN ('mentor', 'docente')
+      GROUP BY u.id
+      ORDER BY u.nombre
+    `
+  }
+
+  // carreraPermitida: null para el admin (cualquier materia del catálogo) o la carrera del coordinador.
+  async function asignar(mentorId, materia, quien, carreraPermitida = null) {
+    const vigente = await catalogo()
+    const permitidas = carreraPermitida
+      ? vigente.find((c) => c.nombre === carreraPermitida)?.materias || []
+      : vigente.flatMap((c) => c.materias)
+
+    if (!permitidas.includes(materia)) {
+      throw new ErrorDeMateria(
+        carreraPermitida ? 'Solo puedes asignar materias de ' + carreraPermitida + '.' : 'Elige una materia del catálogo.'
+      )
+    }
+
+    const [mentor] = await sql`SELECT rol FROM usuarios WHERE id = ${mentorId}`
+    if (!mentor || !ROLES_CON_MATERIAS.includes(mentor.rol)) {
+      throw new ErrorDeMateria('Solo se asignan materias a mentores y docentes.')
+    }
+
+    const nuevas = await sql`
+      INSERT INTO mentor_materias (mentor_id, materia, asignada_por)
+      VALUES (${mentorId}, ${materia}, ${quien})
+      ON CONFLICT DO NOTHING
+      RETURNING materia
+    `
+    if (nuevas.length === 0) {
+      throw new ErrorDeMateria('Ese mentor ya tiene asignada ' + materia + '.')
+    }
+  }
+
+  async function desasignar(mentorId, materia, carreraPermitida = null) {
+    if (carreraPermitida) {
+      const delPrograma = (await catalogo()).find((c) => c.nombre === carreraPermitida)?.materias || []
+      if (!delPrograma.includes(materia)) {
+        throw new ErrorDeMateria('Solo puedes quitar materias de ' + carreraPermitida + '.')
+      }
+    }
+
+    await asegurarTabla()
+    const borradas = await sql`
+      DELETE FROM mentor_materias WHERE mentor_id = ${mentorId} AND materia = ${materia} RETURNING materia
+    `
+    if (borradas.length === 0) {
+      throw new ErrorDeMateria('Ese mentor no tiene asignada esa materia.')
+    }
+  }
+
+  return {
+    catalogo,
+    materiaValida,
+    agregar,
+    quitar,
+    renombrar,
+    uso,
+    asignadasA,
+    alcanceDe,
+    puedeAtender,
+    mentoresConMaterias,
+    asignar,
+    desasignar,
+  }
 }

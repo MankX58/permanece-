@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import {
+  CalendarClock,
+  Hourglass,
   CalendarPlus,
   CalendarDays,
   ChevronDown,
@@ -80,6 +82,61 @@ function Asistentes({ personas, conValoracion }) {
   )
 }
 
+// Respuesta del mentor a una solicitud. Llega con el horario que sugirió el estudiante: si el mentor lo
+// deja igual se agenda de una vez; si lo cambia, se envía como propuesta y el estudiante debe aceptarla.
+function horarioSugerido(solicitud) {
+  return solicitud.sugeridaFecha ? fechaCorta(solicitud.sugeridaFecha) + ', ' + solicitud.sugeridaHorario : null
+}
+
+function mismoQueSugerido(valor, solicitud) {
+  return (
+    Boolean(solicitud.sugeridaFecha) &&
+    valor.fecha === solicitud.sugeridaFecha &&
+    valor.inicio + ' - ' + valor.fin === solicitud.sugeridaHorario
+  )
+}
+
+function FormularioRespuesta({ solicitud, valor, cambiar, enviar, cerrar }) {
+  const agendaDirecto = mismoQueSugerido(valor, solicitud)
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        enviar(agendaDirecto)
+      }}
+      className={claseCaja + ' mt-4 bg-fondo'}
+    >
+      <select
+        value={valor.area}
+        onChange={(e) => cambiar('area', e.target.value)}
+        className={claseCampo + ' bg-tarjeta md:col-span-2'}
+      >
+        {areas.map((opcion) => (
+          <option key={opcion}>{opcion}</option>
+        ))}
+      </select>
+      <CamposSesion valor={valor} cambiar={cambiar} className={claseCampo + ' bg-tarjeta'} />
+      <p className="md:col-span-2 text-xs text-zinc-500">
+        {agendaDirecto
+          ? 'Es el horario que sugirió ' + solicitud.estudiante + ': la asesoría queda agendada de una vez.'
+          : solicitud.sugeridaFecha
+            ? 'Cambiaste el horario que sugirió ' + solicitud.estudiante + ' (' + horarioSugerido(solicitud) +
+              '). Se le enviará como propuesta y deberá aceptarla.'
+            : solicitud.estudiante + ' recibirá esta propuesta y deberá aceptarla.'}
+      </p>
+      <div className="md:col-span-2 flex justify-end gap-4 items-center">
+        <button type="button" onClick={cerrar} className={claseAccion}>
+          Cerrar
+        </button>
+        <motion.button {...toque} className="bg-primario hover:bg-red-700 text-sm font-semibold px-5 py-2 rounded-lg">
+          {agendaDirecto ? 'Agendar con este horario' : 'Enviar propuesta'}
+        </motion.button>
+      </div>
+    </form>
+  )
+}
+
 // Dónde y cómo es la sesión, en una línea.
 function modalidadDe(asesoria) {
   if (!asesoria.virtual) return 'Presencial · ' + asesoria.lugar
@@ -96,14 +153,14 @@ function PortalMentores({
   abrirDetalle,
   solicitudes,
   aceptarSolicitud,
+  proponerHorario,
   liberarSolicitud,
   atenderSolicitud,
-  agendarSolicitud,
   catalogo,
 }) {
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [formulario, setFormulario] = useState(formularioVacio)
-  const [agendando, setAgendando] = useState(null)
+  const [respondiendo, setRespondiendo] = useState(null)
   const [editando, setEditando] = useState(null)
   const [resumenes, setResumenes] = useState({})
   const [abierta, setAbierta] = useState(null)
@@ -112,14 +169,30 @@ function PortalMentores({
   const mias = asesorias.filter((asesoria) => asesoria.esMia)
   const proximas = mias.filter((asesoria) => !asesoria.pasada)
   const impartidas = mias.filter((asesoria) => asesoria.pasada)
-  const pendientes = solicitudes
-    .filter((solicitud) => !solicitud.esMia && !solicitud.aceptada)
+  // Mentores y docentes solo ven y atienden sus materias asignadas (sin materias, ninguna).
+  // alcance null = sin restricción (admin).
+  const alcance = yo.materiasAsignadas ?? null
+  const sinMaterias = Array.isArray(alcance) && alcance.length === 0
+  const puedeAtender = (materia) => alcance === null || alcance.includes(materia)
+  const catalogoPropio =
+    alcance === null
+      ? catalogo
+      : catalogo
+          .map((carrera) => ({ ...carrera, materias: carrera.materias.filter((materia) => alcance.includes(materia)) }))
+          .filter((carrera) => carrera.materias.length > 0)
+
+  const libres = solicitudes.filter((solicitud) => !solicitud.esMia && !solicitud.aceptada)
+  const pendientes = libres
+    .filter((solicitud) => puedeAtender(solicitud.materia))
     .sort((a, b) => urgencias.indexOf(a.urgencia) - urgencias.indexOf(b.urgencia) || a.id - b.id)
-  const porAgendar = solicitudes.filter(
+  const fueraDeAlcance = libres.length - pendientes.length
+  const reservadas = solicitudes.filter(
     (solicitud) => solicitud.aceptadaPorMi && !solicitud.atendida && !solicitud.asesoriaId
   )
+  const esperando = reservadas.filter((solicitud) => solicitud.propuesta)
+  const porAgendar = reservadas.filter((solicitud) => !solicitud.propuesta)
   const atendidas = solicitudes.filter((solicitud) => solicitud.aceptadaPorMi && solicitud.atendida)
-  const programadas = proximas.length + porAgendar.length
+  const programadas = proximas.length + reservadas.length
   const sinEnlace = proximas.filter((asesoria) => asesoria.virtual && !asesoria.enlace).length
 
   const historial = [
@@ -172,10 +245,45 @@ function PortalMentores({
     setMostrarFormulario(false)
   }
 
-  function agendar(e) {
-    e.preventDefault()
-    agendarSolicitud(agendando.id, { area: agendando.area, ...datosDeSesion(agendando) })
-    setAgendando(null)
+  // Abre (o cierra) el formulario de respuesta con el horario que sugirió el estudiante.
+  function abrirRespuesta(solicitud) {
+    if (respondiendo?.id === solicitud.id) return setRespondiendo(null)
+    const [inicio, fin] = (solicitud.sugeridaHorario || '').split(' - ')
+    setRespondiendo({
+      id: solicitud.id,
+      area: areas[0],
+      ...sesionVacia,
+      fecha: solicitud.sugeridaFecha || '',
+      inicio: solicitud.sugeridaFecha ? inicio : '',
+      fin: solicitud.sugeridaFecha ? fin : '',
+    })
+  }
+
+  async function responder(agendaDirecto) {
+    const sesion = datosDeSesion(respondiendo)
+    const bien = agendaDirecto
+      ? await aceptarSolicitud(respondiendo.id, {
+          area: respondiendo.area,
+          virtual: sesion.virtual,
+          lugar: sesion.lugar,
+          enlace: sesion.enlace,
+        })
+      : await proponerHorario(respondiendo.id, { area: respondiendo.area, ...sesion })
+    if (bien) setRespondiendo(null)
+  }
+
+  function formularioPara(solicitud) {
+    return (
+      respondiendo?.id === solicitud.id && (
+        <FormularioRespuesta
+          solicitud={solicitud}
+          valor={respondiendo}
+          cambiar={(campo, valor) => setRespondiendo({ ...respondiendo, [campo]: valor })}
+          enviar={responder}
+          cerrar={() => setRespondiendo(null)}
+        />
+      )
+    )
   }
 
   function guardarEdicion(e) {
@@ -214,11 +322,29 @@ function PortalMentores({
               </span>
             )}
           </p>
+          {sinMaterias && (
+            <p className="text-sm text-acento bg-primario/10 border border-primario/30 rounded-xl px-4 py-3 mt-3 max-w-xl">
+              Aún no tienes materias asignadas, así que no puedes atender solicitudes ni publicar asesorías. Pídele a tu
+              coordinador que te asigne las materias que puedes atender.
+            </p>
+          )}
+          {alcance?.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 mt-3">
+              <span className="text-xs text-zinc-500 mr-1">Tus materias asignadas:</span>
+              {alcance.map((materia) => (
+                <span key={materia} className="text-[11px] text-zinc-200 bg-tarjeta border border-borde rounded-md px-2 py-0.5">
+                  {materia}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
         <motion.button
           {...toque}
           onClick={() => setMostrarFormulario(!mostrarFormulario)}
-          className="shrink-0 self-start lg:self-auto flex items-center gap-2 bg-primario hover:bg-red-700 text-sm font-semibold px-4 py-2 rounded-full"
+          disabled={sinMaterias}
+          title={sinMaterias ? 'Necesitas materias asignadas para publicar' : undefined}
+          className="shrink-0 self-start lg:self-auto flex items-center gap-2 bg-primario hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-semibold px-4 py-2 rounded-full"
         >
           <motion.span animate={{ rotate: mostrarFormulario ? 135 : 0 }}>
             <CalendarPlus size={16} />
@@ -238,7 +364,7 @@ function PortalMentores({
           >
             <form onSubmit={publicar} className={claseCaja + ' mt-6'}>
               <SelectorMateria
-                catalogo={catalogo}
+                catalogo={catalogoPropio}
                 value={formulario.materia}
                 onChange={(materia) => cambiar('materia', materia)}
                 className={claseCampo}
@@ -340,7 +466,12 @@ function PortalMentores({
 
             {pendientes.length === 0 && (
               <p className="text-sm text-zinc-500 bg-tarjeta border border-dashed border-borde rounded-xl p-5">
-                No hay solicitudes pendientes.
+                No hay solicitudes pendientes{alcance !== null ? ' de tus materias' : ''}.
+              </p>
+            )}
+            {alcance !== null && !sinMaterias && fueraDeAlcance > 0 && (
+              <p className="text-xs text-zinc-500 mb-3">
+                Ves solo las solicitudes de tus materias asignadas ({fueraDeAlcance} de otras materias quedan para otros mentores).
               </p>
             )}
 
@@ -358,10 +489,11 @@ function PortalMentores({
                       animate="visible"
                       exit="salida"
                       className={
-                        'bg-tarjeta border border-borde border-l-4 rounded-xl p-4 flex items-center gap-4 ' +
+                        'bg-tarjeta border border-borde border-l-4 rounded-xl p-4 ' +
                         (urgente ? 'border-l-primario' : 'border-l-zinc-600')
                       }
                     >
+                      <div className="flex items-center gap-4">
                       <div className="shrink-0 size-11 rounded-lg bg-zinc-800 text-acento flex items-center justify-center">
                         <BookOpen size={20} />
                       </div>
@@ -381,15 +513,23 @@ function PortalMentores({
                             <Clock size={13} className="text-acento" />
                             {solicitud.urgencia}
                           </span>
+                          {horarioSugerido(solicitud) && (
+                            <span className={claseDato + ' !text-white !border-primario/40'}>
+                              <CalendarClock size={13} className="text-acento" />
+                              Sugiere: {horarioSugerido(solicitud)}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <motion.button
                         {...toque}
-                        onClick={() => aceptarSolicitud(solicitud.id)}
+                        onClick={() => abrirRespuesta(solicitud)}
                         className="shrink-0 bg-primario hover:bg-red-700 rounded-full px-4 py-2 text-xs font-bold transition-colors"
                       >
-                        Aceptar
+                        {respondiendo?.id === solicitud.id ? 'Cerrar' : 'Responder'}
                       </motion.button>
+                      </div>
+                      {formularioPara(solicitud)}
                     </motion.div>
                   )
                 })}
@@ -571,48 +711,65 @@ function PortalMentores({
                       </button>
                       <motion.button
                         {...toque}
-                        onClick={() =>
-                          setAgendando(
-                            agendando?.id === solicitud.id ? null : { id: solicitud.id, area: areas[0], ...sesionVacia }
-                          )
-                        }
+                        onClick={() => abrirRespuesta(solicitud)}
                         className="bg-primario hover:bg-red-700 rounded-full px-4 py-2 text-xs font-bold transition-colors"
                       >
-                        Agendar
+                        {horarioSugerido(solicitud) ? 'Agendar o proponer' : 'Proponer horario'}
                       </motion.button>
                     </div>
 
-                    {agendando?.id === solicitud.id && (
-                      <form onSubmit={agendar} className={claseCaja + ' mt-4 bg-fondo'}>
-                        <select
-                          value={agendando.area}
-                          onChange={(e) => setAgendando({ ...agendando, area: e.target.value })}
-                          className={claseCampo + ' bg-tarjeta md:col-span-2'}
-                        >
-                          {areas.map((opcion) => (
-                            <option key={opcion}>{opcion}</option>
-                          ))}
-                        </select>
-                        <CamposSesion
-                          valor={agendando}
-                          cambiar={(campo, valor) => setAgendando({ ...agendando, [campo]: valor })}
-                          className={claseCampo + ' bg-tarjeta'}
-                        />
-                        <p className="md:col-span-2 text-xs text-zinc-500">
-                          {solicitud.estudiante} recibirá la fecha, el horario y el lugar o enlace.
-                        </p>
-                        <div className="md:col-span-2 flex justify-end gap-4 items-center">
-                          <button type="button" onClick={() => setAgendando(null)} className={claseAccion}>
-                            Cerrar
-                          </button>
-                          <motion.button {...toque} className={claseBotonLleno}>
-                            Agendar sesión
-                          </motion.button>
-                        </div>
-                      </form>
-                    )}
+                    {formularioPara(solicitud)}
+
                   </motion.div>
                 ))}
+
+                {esperando.map((solicitud) => {
+                  const p = solicitud.propuesta
+                  return (
+                    <motion.div
+                      key={'p-' + solicitud.id}
+                      layout
+                      variants={item}
+                      initial="oculto"
+                      animate="visible"
+                      exit="salida"
+                      className="bg-tarjeta border border-borde border-l-4 border-l-amber-500 rounded-xl p-4"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="shrink-0 size-11 rounded-lg bg-zinc-800 text-amber-400 flex items-center justify-center">
+                          <Hourglass size={20} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="flex flex-wrap items-center gap-2">
+                            <span className="text-base font-bold">{solicitud.materia}</span>
+                            <span className={insignia + '!text-amber-400 !border-amber-500/40 !bg-amber-500/10'}>
+                              ESPERANDO AL ESTUDIANTE
+                            </span>
+                          </p>
+                          <p className="text-sm text-zinc-400 mt-0.5">{solicitud.tema}</p>
+                          <div className="flex flex-wrap gap-2 mt-2.5">
+                            <span className={claseDato}>
+                              <UserRound size={13} className="text-zinc-400" />
+                              {solicitud.estudiante}
+                            </span>
+                            <span className={claseDato + ' !text-white !border-amber-500/40'}>
+                              <CalendarClock size={13} className="text-amber-400" />
+                              Propusiste: {fechaCorta(p.fecha)}, {p.horario} · {p.virtual ? 'Virtual' : p.lugar}
+                            </span>
+                            {horarioSugerido(solicitud) && (
+                              <span className={claseDato + ' text-zinc-500'}>Había sugerido: {horarioSugerido(solicitud)}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex justify-end mt-3">
+                        <button onClick={() => liberarSolicitud(solicitud.id)} className={claseAccion + ' hover:!text-acento'}>
+                          Retirar propuesta
+                        </button>
+                      </div>
+                    </motion.div>
+                  )
+                })}
               </AnimatePresence>
             </div>
           </section>
