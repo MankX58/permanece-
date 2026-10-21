@@ -40,6 +40,7 @@ function MisSolicitudes({
   valorar,
   abrirDetalle,
   catalogo,
+  carrera,
   responderPropuesta,
 }) {
   const [materia, setMateria] = useState('')
@@ -234,7 +235,10 @@ function MisSolicitudes({
             transition={{ duration: 0.18 }}
             className="relative z-10 bg-tarjeta border border-borde rounded-xl p-4 grid md:grid-cols-2 gap-3 mt-4"
           >
-            <SelectorMateria catalogo={catalogo} value={materia} onChange={setMateria} className={claseCampo} />
+            <div>
+              <SelectorMateria catalogo={catalogo} value={materia} onChange={setMateria} className={claseCampo} />
+              {carrera && <p className="text-[11px] text-zinc-500 mt-1">Materias de {carrera}</p>}
+            </div>
             <select value={urgencia} onChange={(e) => setUrgencia(e.target.value)} className={claseCampo}>
               {urgencias.map((opcion) => (
                 <option key={opcion}>{opcion}</option>

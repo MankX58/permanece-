@@ -18,6 +18,7 @@ import Materias from './pages/Materias.jsx'
 import EspecialidadMentores from './pages/EspecialidadMentores.jsx'
 import DetalleAsesoria from './components/DetalleAsesoria.jsx'
 import Introduccion from './components/Introduccion.jsx'
+import ElegirCarrera from './components/ElegirCarrera.jsx'
 import { useApi } from './useApi.js'
 
 function App() {
@@ -175,6 +176,15 @@ function App() {
     enviar('/asesorias/' + id + '/valoracion', 'PUT', { valoracion, comentario }, 'Valoración guardada.')
   }
 
+  // El estudiante elige su carrera la primera vez; el admin la puede corregir.
+  function elegirCarrera(carrera) {
+    return enviar('/yo/carrera', 'PUT', { carrera }, 'Listo: verás las materias de ' + carrera + '.')
+  }
+
+  function cambiarCarrera(id, carrera) {
+    return enviar('/usuarios/' + encodeURIComponent(id) + '/carrera', 'PUT', { carrera }, 'Carrera actualizada.')
+  }
+
   function cambiarRol(id, rol, programa) {
     enviar('/usuarios/' + encodeURIComponent(id) + '/rol', 'PUT', { rol, programa }, 'Rol actualizado.')
   }
@@ -236,7 +246,12 @@ function App() {
   const esAdmin = yo.rol === 'admin'
   const esCoordinador = yo.rol === 'coordinador'
   const detalle = asesorias.find((asesoria) => asesoria.id === detalleId)
-  const mostrarIntroduccion = verIntroduccion || (yo.introduccionVista !== yo.rol && introVistaLocal !== yo.rol)
+  // Un estudiante sin carrera la elige antes de todo (también los que ya existían). La restricción depende del
+  // rol: el estudiante pide asesorías solo de su carrera; los demás roles tienen sus propias reglas.
+  const faltaCarrera = yo.rol === 'estudiante' && !yo.carrera
+  const catalogoParaPedir = yo.rol === 'estudiante' ? catalogo.filter((c) => c.nombre === yo.carrera) : catalogo
+  const mostrarIntroduccion =
+    !faltaCarrera && (verIntroduccion || (yo.introduccionVista !== yo.rol && introVistaLocal !== yo.rol))
 
   let contenido
   if (pagina === 'banco') {
@@ -262,7 +277,8 @@ function App() {
         verEnBanco={verEnBanco}
         valorar={valorar}
         abrirDetalle={setDetalleId}
-        catalogo={catalogo}
+        catalogo={catalogoParaPedir}
+        carrera={yo.rol === 'estudiante' ? yo.carrera : null}
         responderPropuesta={responderPropuesta}
       />
     )
@@ -285,7 +301,9 @@ function App() {
       />
     )
   } else if (pagina === 'usuarios' && esAdmin) {
-    contenido = <Usuarios yo={yo} usuarios={usuarios} cambiarRol={cambiarRol} />
+    contenido = (
+      <Usuarios yo={yo} usuarios={usuarios} cambiarRol={cambiarRol} cambiarCarrera={cambiarCarrera} />
+    )
   } else if (pagina === 'reportes' && (esAdmin || esCoordinador)) {
     contenido = <Reportes yo={yo} api={api} />
   } else if (pagina === 'materias' && (esAdmin || esCoordinador)) {
@@ -377,8 +395,9 @@ function App() {
       </AnimatePresence>
 
       <AnimatePresence>
+        {faltaCarrera && <ElegirCarrera key="carrera" nombre={yo.nombre} carreras={catalogo} elegir={elegirCarrera} />}
         {mostrarIntroduccion && (
-          <Introduccion rol={yo.rol} nombre={yo.nombre} cerrar={() => terminarIntroduccion(yo.rol)} />
+          <Introduccion key="introduccion" rol={yo.rol} nombre={yo.nombre} cerrar={() => terminarIntroduccion(yo.rol)} />
         )}
       </AnimatePresence>
 

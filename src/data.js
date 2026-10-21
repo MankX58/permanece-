@@ -348,6 +348,11 @@ export const preguntas = [
     respuesta: 'Al terminar cada sesión, abre su detalle y marca quién asistió. Con ese registro y las reseñas se arman los informes por materia; sin él, la sesión aparece como “sin registrar”.',
   },
   {
+    id: 12,
+    pregunta: '¿Por qué solo veo las materias de mi carrera al pedir una asesoría?',
+    respuesta: 'Al entrar por primera vez eliges tu carrera, y las solicitudes se limitan a las materias de su plan. Si elegiste mal, pídele al administrador que la corrija. En el Banco de Asesorías puedes seguir inscribiéndote en sesiones de cualquier materia.',
+  },
+  {
     id: 10,
     pregunta: '¿Cómo se acuerda el horario de una asesoría que pedí?',
     respuesta: 'Al pedirla sugieres el día y la hora. El mentor puede aceptarlo (queda agendada) o proponerte otro horario. La propuesta aparece en Mis Solicitudes como «Por confirmar»: si la aceptas queda agendada; si no te sirve, la rechazas (puedes sugerir otro horario) y la solicitud vuelve a estar disponible para otros mentores.',

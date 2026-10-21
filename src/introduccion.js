@@ -37,7 +37,7 @@ const estudiante = {
       titulo: 'Cómo funciona una solicitud',
       texto: 'Desde que pides ayuda hasta que la recibes:',
       puntos: [
-        '1. Envías la solicitud con la materia, el tema y el día y hora que te sirven.',
+        '1. Envías la solicitud con una materia de tu carrera, el tema y el día y hora que te sirven.',
         '2. Un mentor acepta tu horario (queda agendada) o te propone otro.',
         '3. Si te propone otro, lo aceptas o lo rechazas; si lo rechazas, vuelve a estar disponible para otros mentores.',
         '4. Asistes, lees la retroalimentación del mentor y valoras la sesión.',

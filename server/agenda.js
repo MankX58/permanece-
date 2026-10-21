@@ -95,6 +95,17 @@ export function crearAgenda(sql, materias) {
     if (!(await materias.materiaValida(materia))) {
       throw new ErrorDeAgenda('Elige una materia de la lista.')
     }
+
+    // El estudiante solo pide asesorías de materias de su carrera. Los demás roles, de cualquier materia.
+    if (estudiante.rol === 'estudiante') {
+      if (!estudiante.carrera) {
+        throw new ErrorDeAgenda('Primero elige tu carrera.')
+      }
+      const deSuCarrera = (await materias.catalogo()).find((c) => c.nombre === estudiante.carrera)?.materias || []
+      if (!deSuCarrera.includes(materia)) {
+        throw new ErrorDeAgenda('Solo puedes pedir asesorías de materias de ' + estudiante.carrera + '.')
+      }
+    }
     if (tema.length === 0) {
       throw new ErrorDeAgenda('Cuéntale al mentor con qué tema necesitas ayuda.')
     }

@@ -63,6 +63,10 @@ await sql`ALTER TABLE inscripciones ADD COLUMN IF NOT EXISTS asistio BOOLEAN`
 await sql`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS programa TEXT`
 await sql`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS introduccion_vista TEXT`
 
+// Carrera del propio usuario (la elige el estudiante al entrar). Es distinta de "programa", que es el que
+// coordina un coordinador, y se conserva aunque cambie el rol.
+await sql`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS carrera TEXT`
+
 // Materias que los coordinadores suman a su carrera, aparte del plan oficial de src/data.js.
 // Puede ser una materia que ya se ve en otra carrera (mismo nombre) o una nueva.
 await sql`
@@ -110,9 +114,12 @@ await sql`
   )
 `
 
+// Los datos de ejemplo solo se cargan si se pide explícitamente (npm run db:setup -- --con-ejemplos) y la base
+// está vacía. Así correr la migración nunca rellena una base que se dejó en cero a propósito.
+const conEjemplos = process.argv.includes('--con-ejemplos')
 const [{ total }] = await sql`SELECT COUNT(*)::int AS total FROM asesorias`
 
-if (total === 0) {
+if (conEjemplos && total === 0) {
   for (const a of asesorias) {
     await sql`
       INSERT INTO asesorias (tutor, rol, tipo, area, materia, descripcion, fecha, horario, lugar, virtual, enlace, cupos)
@@ -127,7 +134,7 @@ if (total === 0) {
     `
   }
 
-  console.log('Tablas creadas y datos de ejemplo cargados.')
+  console.log('Tablas al día y datos de ejemplo cargados.')
 } else {
-  console.log('Las tablas ya tenían datos, no se cargó nada.')
+  console.log('Tablas al día. No se cargaron datos de ejemplo.')
 }

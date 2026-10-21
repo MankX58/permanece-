@@ -76,7 +76,10 @@ function Header({ yo, notificaciones, marcarLeidas }) {
         />
         <div>
           <p className="text-sm font-semibold leading-tight">{yo.nombre}</p>
-          <p className="text-xs text-zinc-400 capitalize">{yo.rol}</p>
+          <p className="text-xs text-zinc-400">
+            <span className="capitalize">{yo.rol}</span>
+            {yo.rol === 'estudiante' && yo.carrera && <span> · {yo.carrera}</span>}
+          </p>
         </div>
         <motion.button
           onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}

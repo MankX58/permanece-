@@ -14,7 +14,7 @@ const filtros = [
   { id: 'admin', texto: 'Admins' },
 ]
 
-function Usuarios({ yo, usuarios, cambiarRol }) {
+function Usuarios({ yo, usuarios, cambiarRol, cambiarCarrera }) {
   const [busqueda, setBusqueda] = useState('')
   const [filtro, setFiltro] = useState('todos')
 
@@ -86,12 +86,33 @@ function Usuarios({ yo, usuarios, cambiarRol }) {
             >
               <div className="min-w-0">
                 <p className="text-sm font-medium truncate">{usuario.nombre}</p>
-                <p className="text-xs text-zinc-500 truncate">{usuario.email}</p>
+                <p className="text-xs text-zinc-500 truncate">
+                  {usuario.email}
+                  {usuario.carrera && <span className="text-zinc-400"> · {usuario.carrera}</span>}
+                </p>
               </div>
               {usuario.id === yo.id ? (
                 <span className="text-xs text-zinc-500 capitalize shrink-0">{usuario.rol} (tú)</span>
               ) : (
                 <div className="flex flex-wrap items-center justify-end gap-2 shrink-0">
+                  {usuario.rol === 'estudiante' && (
+                    <select
+                      value={usuario.carrera || ''}
+                      onChange={(e) => cambiarCarrera(usuario.id, e.target.value)}
+                      title="Carrera del estudiante"
+                      className={
+                        'bg-fondo border rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-acento max-w-52 ' +
+                        (usuario.carrera ? 'border-borde' : 'border-primario text-acento')
+                      }
+                    >
+                      <option value="" disabled>
+                        Sin carrera
+                      </option>
+                      {carreras.map((carrera) => (
+                        <option key={carrera.nombre}>{carrera.nombre}</option>
+                      ))}
+                    </select>
+                  )}
                   {usuario.rol === 'coordinador' && (
                     <select
                       value={usuario.programa || ''}

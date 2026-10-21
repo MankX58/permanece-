@@ -28,7 +28,7 @@ app.use('/api', async (req, res, next) => {
       CASE WHEN (SELECT COUNT(*) FROM usuarios) = 0 THEN 'admin' ELSE 'estudiante' END
     )
     ON CONFLICT (id) DO UPDATE SET nombre = EXCLUDED.nombre, email = EXCLUDED.email
-    RETURNING id, nombre, email, rol, programa, introduccion_vista AS "introduccionVista"
+    RETURNING id, nombre, email, rol, programa, carrera, introduccion_vista AS "introduccionVista"
   `
   req.usuario = usuario
   next()
@@ -138,7 +138,7 @@ function buscarNotificaciones(usuario) {
 }
 
 function buscarUsuarios() {
-  return sql`SELECT id, nombre, email, rol, programa FROM usuarios ORDER BY nombre`
+  return sql`SELECT id, nombre, email, rol, programa, carrera FROM usuarios ORDER BY nombre`
 }
 
 app.get('/api/datos', async (req, res) => {
@@ -194,6 +194,35 @@ app.put('/api/usuarios/:id/rol', soloAdmin, async (req, res) => {
   } else if (!antes || antes.rol !== rol) {
     await notificar(req.params.id, 'Tu rol ahora es ' + rol + '.')
   }
+  res.json({ ok: true })
+})
+
+// El estudiante elige su carrera la primera vez. Después solo el admin puede cambiarla, para que la
+// restricción de materias no se pueda saltar cambiándose de carrera.
+app.put('/api/yo/carrera', async (req, res) => {
+  const carrera = String(req.body.carrera || '')
+
+  if (!programaValido(carrera)) {
+    return res.status(400).json({ mensaje: 'Elige una carrera de la lista.' })
+  }
+  if (req.usuario.carrera) {
+    return res.status(400).json({ mensaje: 'Tu carrera ya está registrada. Si necesitas cambiarla, pídeselo al administrador.' })
+  }
+
+  await sql`UPDATE usuarios SET carrera = ${carrera} WHERE id = ${idUsuario(req)}`
+  res.json({ ok: true })
+})
+
+// El admin corrige la carrera de cualquier usuario.
+app.put('/api/usuarios/:id/carrera', soloAdmin, async (req, res) => {
+  const carrera = String(req.body.carrera || '')
+
+  if (!programaValido(carrera)) {
+    return res.status(400).json({ mensaje: 'Elige una carrera de la lista.' })
+  }
+
+  await sql`UPDATE usuarios SET carrera = ${carrera} WHERE id = ${req.params.id}`
+  await notificar(req.params.id, 'Tu carrera quedó registrada como ' + carrera + '.')
   res.json({ ok: true })
 })
 
