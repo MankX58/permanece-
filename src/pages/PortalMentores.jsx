@@ -498,6 +498,10 @@ function PortalMentores({
                             <Clock size={13} className="text-acento" />
                             {solicitud.urgencia}
                           </span>
+                          <span className={claseDato}>
+                            <Users size={13} className="text-zinc-400" />
+                            {solicitud.companeros > 0 ? 'Grupal · hasta ' + (solicitud.companeros + 1) + ' estudiantes' : 'Individual'}
+                          </span>
                           {horarioSugerido(solicitud) && (
                             <span className={claseDato + ' !text-white !border-primario/40'}>
                               <CalendarClock size={13} className="text-acento" />
@@ -678,6 +682,10 @@ function PortalMentores({
                           <span className={claseDato}>
                             <Clock size={13} className="text-acento" />
                             {solicitud.urgencia}
+                          </span>
+                          <span className={claseDato}>
+                            <Users size={13} className="text-zinc-400" />
+                            {solicitud.companeros > 0 ? 'Grupal · hasta ' + (solicitud.companeros + 1) + ' estudiantes' : 'Individual'}
                           </span>
                         </div>
                       </div>

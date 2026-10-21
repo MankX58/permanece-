@@ -172,7 +172,7 @@ function DetalleAsesoria({
             <Dato etiqueta="Programa">{programaDe(asesoria.materia, catalogo)}</Dato>
             {!privada && (
               <Dato etiqueta="Cupos">
-                {asesoria.inscritos}/{asesoria.cupos} inscritos
+                {asesoria.inscritos}/{asesoria.cupos} inscritos · {Math.max(0, asesoria.cupos - asesoria.inscritos)} libres
               </Dato>
             )}
           </dl>

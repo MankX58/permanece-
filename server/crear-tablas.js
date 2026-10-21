@@ -100,6 +100,10 @@ await sql`ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS sugerida_fecha DATE`
 await sql`ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS sugerida_horario TEXT`
 await sql`ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS propuesta JSONB`
 
+// Con cuántos compañeros más acepta el estudiante recibir la asesoría. 0 = sesión individual (privada);
+// más de 0 = al agendarla se publica en el banco con 1 + companeros cupos.
+await sql`ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS companeros INTEGER NOT NULL DEFAULT 0`
+
 await sql`
   CREATE TABLE IF NOT EXISTS notificaciones (
     id SERIAL PRIMARY KEY,

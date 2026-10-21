@@ -109,7 +109,7 @@ function buscarAsesorias(usuario) {
 function buscarSolicitudes(usuario, esMentor) {
   return sql`
     SELECT
-      s.id, s.estudiante, s.materia, s.tema, s.urgencia,
+      s.id, s.estudiante, s.materia, s.tema, s.urgencia, s.companeros,
       COALESCE(s.usuario_id = ${usuario}, false) AS "esMia",
       s.mentor_id IS NOT NULL AS aceptada,
       COALESCE(s.mentor_id = ${usuario}, false) AS "aceptadaPorMi",
@@ -539,6 +539,14 @@ app.delete('/api/asesorias/:id/inscripcion', async (req, res) => {
     })
   }
 
+  // Quien pidió la asesoría sale de ella eliminando su solicitud, para que no quede aceptada sin sesión.
+  const [suya] = await sql`
+    SELECT 1 FROM solicitudes WHERE asesoria_id = ${req.params.id} AND usuario_id = ${idUsuario(req)}
+  `
+  if (suya) {
+    return res.status(400).json({ mensaje: 'Esta asesoría salió de tu solicitud. Para salirte, elimina la solicitud en Mis Solicitudes.' })
+  }
+
   await sql`
     DELETE FROM inscripciones
     WHERE usuario_id = ${idUsuario(req)} AND asesoria_id = ${req.params.id}
@@ -596,13 +604,28 @@ app.delete('/api/solicitudes/:id', async (req, res) => {
     WHERE id = ${req.params.id} AND usuario_id = ${idUsuario(req)}
   `
 
-  // Si ya tenía una sesión próxima agendada, se cancela y el mentor se entera. Las pasadas quedan en el historial.
+  // Si ya tenía una sesión próxima agendada, el estudiante sale de ella. Si nadie más se inscribió, se cancela;
+  // si hay compañeros inscritos, sigue para ellos. Las pasadas quedan en el historial.
   if (solicitud?.asesoria_id) {
-    const canceladas = await sql`
-      DELETE FROM asesorias WHERE id = ${solicitud.asesoria_id} AND fecha >= CURRENT_DATE RETURNING id
+    const salio = await sql`
+      DELETE FROM inscripciones i USING asesorias a
+      WHERE i.asesoria_id = a.id AND a.id = ${solicitud.asesoria_id} AND a.fecha >= CURRENT_DATE
+        AND i.usuario_id = ${idUsuario(req)}
+      RETURNING a.id
     `
-    if (canceladas.length > 0) {
-      await notificar(solicitud.mentor_id, req.usuario.nombre + ' canceló la asesoría de ' + solicitud.materia + '.')
+    if (salio.length > 0) {
+      const canceladas = await sql`
+        DELETE FROM asesorias a
+        WHERE a.id = ${solicitud.asesoria_id}
+          AND NOT EXISTS (SELECT 1 FROM inscripciones i WHERE i.asesoria_id = a.id)
+        RETURNING a.id
+      `
+      await notificar(
+        solicitud.mentor_id,
+        canceladas.length > 0
+          ? req.usuario.nombre + ' canceló la asesoría de ' + solicitud.materia + '.'
+          : req.usuario.nombre + ' se salió de la asesoría de ' + solicitud.materia + '. Sigue para los demás inscritos.'
+      )
     }
   }
 

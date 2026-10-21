@@ -11,11 +11,12 @@ import {
   UserRound,
   ChevronRight,
   CalendarClock,
+  Users,
 } from 'lucide-react'
 import SelectorMateria from '../components/SelectorMateria.jsx'
 import Valoracion from '../components/Valoracion.jsx'
 import CajaClicable from '../components/CajaClicable.jsx'
-import { urgencias } from '../data.js'
+import { urgencias, maxCompaneros } from '../data.js'
 import { fechaCorta, fechaDeHoy, mesDe, diaDe, hace } from '../fechas.js'
 import { item, toque } from '../animaciones.js'
 
@@ -46,6 +47,7 @@ function MisSolicitudes({
   const [materia, setMateria] = useState('')
   const [tema, setTema] = useState('')
   const [urgencia, setUrgencia] = useState(urgencias[1])
+  const [companeros, setCompaneros] = useState(0)
   const [filtro, setFiltro] = useState('Todas')
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   // Día y hora que el estudiante sugiere al pedir la asesoría.
@@ -76,8 +78,16 @@ function MisSolicitudes({
 
   function enviar(e) {
     e.preventDefault()
-    agregarSolicitud({ materia, tema, urgencia, fecha: sugerida.fecha, horario: sugerida.inicio + ' - ' + sugerida.fin })
+    agregarSolicitud({
+      materia,
+      tema,
+      urgencia,
+      companeros,
+      fecha: sugerida.fecha,
+      horario: sugerida.inicio + ' - ' + sugerida.fin,
+    })
     setMateria('')
+    setCompaneros(0)
     setTema('')
     setSugerida({ fecha: '', inicio: '', fin: '' })
     setFiltro('Todas')
@@ -283,9 +293,29 @@ function MisSolicitudes({
                 />
               </div>
             </div>
+            <label className="block">
+              <span className="text-xs text-zinc-400">¿Con cuántos compañeros más la recibirías?</span>
+              <select
+                value={companeros}
+                onChange={(e) => setCompaneros(Number(e.target.value))}
+                className={claseCampo + ' w-full mt-1.5'}
+              >
+                <option value={0}>Solo yo (individual)</option>
+                {Array.from({ length: maxCompaneros }, (_, i) => i + 1).map((n) => (
+                  <option key={n} value={n}>
+                    Hasta {n} {n === 1 ? 'compañero' : 'compañeros'} más
+                  </option>
+                ))}
+              </select>
+              {companeros > 0 && (
+                <span className="block text-[11px] text-zinc-500 mt-1">
+                  Cuando la agenden aparecerá en el banco con {companeros} cupos para otros.
+                </span>
+              )}
+            </label>
             <motion.button
               {...toque}
-              className="md:col-start-2 justify-self-end bg-primario hover:bg-red-700 text-sm font-semibold px-5 py-2 rounded-lg"
+              className="self-end justify-self-end bg-primario hover:bg-red-700 text-sm font-semibold px-5 py-2 rounded-lg"
             >
               Enviar solicitud
             </motion.button>
@@ -355,6 +385,10 @@ function MisSolicitudes({
                       <span className={claseDato}>
                         <Clock size={13} className="text-acento" />
                         {solicitud.urgencia}
+                      </span>
+                      <span className={claseDato}>
+                        <Users size={13} className="text-acento" />
+                        {solicitud.companeros > 0 ? 'Grupal · +' + solicitud.companeros : 'Individual'}
                       </span>
                       {solicitud.sugeridaFecha && !sesion && (
                         <span className={claseDato}>

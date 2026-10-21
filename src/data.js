@@ -1,6 +1,9 @@
 // De la más a la menos urgente.
 export const urgencias = ['Urge esta semana', 'Esta semana', 'Próxima semana']
 
+// Cuántos compañeros más puede aceptar el estudiante en la asesoría que pide (0 = individual).
+export const maxCompaneros = 9
+
 // Catálogo cerrado de materias. Lo usan el selector del frontend y la validación del servidor.
 //
 // Fuente: "Plan de formación académico" y acuerdos del Consejo Académico publicados por la
@@ -364,5 +367,10 @@ export const preguntas = [
     id: 9,
     pregunta: '¿Quién ve los informes por materia y qué contienen?',
     respuesta: 'Los administradores ven todos los programas y los coordinadores solo el suyo. Son datos agregados (asesorías, asistencia, valoración y solicitudes por materia) y se pueden descargar en Excel; no incluyen nombres de estudiantes.',
+  },
+  {
+    id: 13,
+    pregunta: '¿Puedo compartir con otros estudiantes la asesoría que pido?',
+    respuesta: 'Sí. Al pedirla eliges con cuántos compañeros más estarías dispuesto a recibirla. Si eliges «Solo yo» es individual; si no, cuando un mentor la agenda aparece en el Banco de Asesorías con los cupos que quedan para que otros se inscriban.',
   },
 ]

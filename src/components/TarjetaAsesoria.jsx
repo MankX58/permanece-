@@ -135,7 +135,8 @@ function TarjetaAsesoria({ asesoria, inscribir, cancelar, abrirDetalle }) {
 
       <div className="mt-4 mb-4">
         <p className="text-xs text-zinc-500">
-          Cupos: {asesoria.inscritos}/{asesoria.cupos} inscritos
+          {lleno ? 'Sin cupos' : Math.max(0, asesoria.cupos - asesoria.inscritos) + ' cupos libres'} ·{' '}
+          {asesoria.inscritos}/{asesoria.cupos} inscritos
         </p>
         <div className="h-1 bg-zinc-800 rounded-full overflow-hidden mt-1.5">
           <motion.div

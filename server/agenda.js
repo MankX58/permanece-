@@ -1,4 +1,4 @@
-import { urgencias } from '../src/data.js'
+import { urgencias, maxCompaneros } from '../src/data.js'
 
 // Solicitudes de asesoría y la negociación del horario entre estudiante y mentor.
 //
@@ -6,7 +6,8 @@ import { urgencias } from '../src/data.js'
 //   disponible   mentor_id NULL. Tiene el horario que sugirió el estudiante.
 //   propuesta    mentor_id = mentor, propuesta = { fecha, horario, virtual, lugar, enlace }.
 //                El mentor propuso otro horario; espera que el estudiante acepte o rechace.
-//   agendada     asesoria_id apunta a la sesión individual creada (asesoría privada de un cupo).
+//   agendada     asesoria_id apunta a la sesión creada. Si el estudiante no aceptó compañeros es privada
+//                (un cupo); si aceptó N, es pública en el banco con 1 + N cupos.
 //
 // - El mentor que acepta el horario sugerido agenda directo (el estudiante ya lo propuso).
 // - Si el mentor propone otro horario, el estudiante lo acepta (se agenda) o lo rechaza: la solicitud
@@ -42,6 +43,10 @@ export function perfilDe(rol) {
 
 function textoSesion(sesion) {
   return fechaLegible(sesion.fecha) + ', ' + sesion.horario + ', ' + (sesion.virtual ? 'virtual' : 'en ' + sesion.lugar)
+}
+
+function enBanco(solicitud) {
+  return solicitud.companeros > 0 ? ' Quedó en el banco con ' + solicitud.companeros + ' cupos para compañeros.' : ''
 }
 
 export function crearAgenda(sql, materias) {
@@ -112,11 +117,15 @@ export function crearAgenda(sql, materias) {
     if (!urgencias.includes(datos.urgencia)) {
       throw new ErrorDeAgenda('Elige qué tan urgente es.')
     }
+    const companeros = Number(datos.companeros ?? 0)
+    if (!Number.isInteger(companeros) || companeros < 0 || companeros > maxCompaneros) {
+      throw new ErrorDeAgenda('Elige con cuántos compañeros más recibirías la asesoría (de 0 a ' + maxCompaneros + ').')
+    }
     await validarSugerencia(datos)
 
     await sql`
-      INSERT INTO solicitudes (usuario_id, estudiante, materia, tema, urgencia, sugerida_fecha, sugerida_horario)
-      VALUES (${estudiante.id}, ${estudiante.nombre}, ${materia}, ${tema}, ${datos.urgencia}, ${datos.fecha}, ${datos.horario})
+      INSERT INTO solicitudes (usuario_id, estudiante, materia, tema, urgencia, sugerida_fecha, sugerida_horario, companeros)
+      VALUES (${estudiante.id}, ${estudiante.nombre}, ${materia}, ${tema}, ${datos.urgencia}, ${datos.fecha}, ${datos.horario}, ${companeros})
     `
 
     // Avisa solo a quien puede atenderla: admins, y mentores o docentes que tienen asignada esta materia.
@@ -138,7 +147,7 @@ export function crearAgenda(sql, materias) {
   // Una solicitud que este mentor puede tomar: libre o ya reservada por él, sin sesión y sin atender.
   async function solicitudParaMentor(id, mentor) {
     const [solicitud] = await sql`
-      SELECT id, usuario_id, materia, tema,
+      SELECT id, usuario_id, materia, tema, companeros,
         to_char(sugerida_fecha, 'YYYY-MM-DD') AS fecha, sugerida_horario AS horario
       FROM solicitudes
       WHERE id = ${id}
@@ -165,7 +174,7 @@ export function crearAgenda(sql, materias) {
     if (error) throw new ErrorDeAgenda(error)
   }
 
-  // Crea la sesión individual (asesoría privada de un cupo), inscribe al estudiante y la liga a la solicitud.
+  // Crea la sesión (privada de un cupo, o pública con cupos para compañeros), inscribe al estudiante y la liga.
   async function crearSesion(id, solicitud, tutor, sesion) {
     const { rol, tipo } = perfilDe(tutor.rol)
 
@@ -173,7 +182,8 @@ export function crearAgenda(sql, materias) {
       WITH nueva AS (
         INSERT INTO asesorias (tutor_id, tutor, rol, tipo, materia, descripcion, fecha, horario, lugar, virtual, enlace, cupos, privada)
         VALUES (${tutor.id}, ${tutor.nombre}, ${rol}, ${tipo}, ${solicitud.materia}, ${solicitud.tema},
-                ${sesion.fecha}, ${sesion.horario}, ${sesion.lugar}, ${sesion.virtual}, ${sesion.enlace}, 1, true)
+                ${sesion.fecha}, ${sesion.horario}, ${sesion.lugar}, ${sesion.virtual}, ${sesion.enlace},
+                ${1 + solicitud.companeros}, ${solicitud.companeros === 0})
         RETURNING id
       ), inscrito AS (
         INSERT INTO inscripciones (usuario_id, asesoria_id)
@@ -208,7 +218,8 @@ export function crearAgenda(sql, materias) {
     await crearSesion(id, solicitud, mentor, sesion)
     await notificar(
       solicitud.usuario_id,
-      mentor.nombre + ' aceptó tu horario y agendó la asesoría de ' + solicitud.materia + ': ' + textoSesion(sesion) + '.'
+      mentor.nombre + ' aceptó tu horario y agendó la asesoría de ' + solicitud.materia + ': ' + textoSesion(sesion) + '.' +
+        enBanco(solicitud)
     )
   }
 
@@ -239,7 +250,7 @@ export function crearAgenda(sql, materias) {
   // Al rechazar puede sugerir un horario nuevo para los demás mentores.
   async function responder(id, estudiante, acepta, sugerencia = null) {
     const [solicitud] = await sql`
-      SELECT s.usuario_id, s.materia, s.tema, s.mentor_id, s.propuesta, u.nombre AS mentor_nombre, u.rol AS mentor_rol
+      SELECT s.usuario_id, s.materia, s.tema, s.companeros, s.mentor_id, s.propuesta, u.nombre AS mentor_nombre, u.rol AS mentor_rol
       FROM solicitudes s
       JOIN usuarios u ON u.id = s.mentor_id
       WHERE s.id = ${id} AND s.usuario_id = ${estudiante.id} AND s.propuesta IS NOT NULL AND s.asesoria_id IS NULL
@@ -260,7 +271,7 @@ export function crearAgenda(sql, materias) {
       await notificar(
         solicitud.mentor_id,
         estudiante.nombre + ' aceptó tu propuesta: la asesoría de ' + solicitud.materia + ' quedó agendada para ' +
-          textoSesion(sesion) + '.'
+          textoSesion(sesion) + '.' + enBanco(solicitud)
       )
       return
     }
