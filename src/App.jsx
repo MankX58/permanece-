@@ -274,6 +274,11 @@ function App() {
   const esMentor = ['mentor', 'docente'].includes(yo.rol)
   const esAdmin = yo.rol === 'admin'
   const esCoordinador = yo.rol === 'coordinador'
+  // Admin y coordinador gestionan la plataforma: no piden ni dan asesorías, así que no ven las páginas de
+  // estudiante ni el portal de mentores. Cualquier otra página los lleva a Reportes.
+  const esGestion = esAdmin || esCoordinador
+  const paginasDeGestion = ['reportes', 'materias', 'especialidades', 'usuarios', 'privacidad', 'ayuda']
+  const paginaVisible = esGestion && !paginasDeGestion.includes(pagina) ? 'reportes' : pagina
   const detalle = asesorias.find((asesoria) => asesoria.id === detalleId)
   // Un estudiante sin carrera la elige antes de todo (también los que ya existían). La restricción depende del
   // rol: el estudiante pide asesorías solo de su carrera; los demás roles tienen sus propias reglas.
@@ -285,21 +290,21 @@ function App() {
     !faltaConsentimiento && !faltaCarrera && (verIntroduccion || (yo.introduccionVista !== yo.rol && introVistaLocal !== yo.rol))
 
   let contenido
-  if (pagina === 'banco') {
+  if (paginaVisible === 'banco') {
     contenido = (
       <BancoAsesorias
         asesorias={asesorias}
-        catalogo={esCoordinador ? catalogo.filter((c) => c.nombre === yo.programa) : catalogo}
-        carreraInicial={yo.rol === 'estudiante' ? yo.carrera || '' : esCoordinador ? yo.programa || '' : ''}
+        catalogo={catalogo}
+        carreraInicial={yo.rol === 'estudiante' ? yo.carrera || '' : ''}
         inscribir={inscribir}
         cancelar={cancelar}
         busquedaInicial={busquedaBanco}
         abrirDetalle={setDetalleId}
       />
     )
-  } else if (pagina === 'calendario') {
+  } else if (paginaVisible === 'calendario') {
     contenido = <Calendario asesorias={asesorias} abrirDetalle={setDetalleId} />
-  } else if (pagina === 'solicitudes') {
+  } else if (paginaVisible === 'solicitudes') {
     contenido = (
       <MisSolicitudes
         asesorias={asesorias}
@@ -315,7 +320,7 @@ function App() {
         responderPropuesta={responderPropuesta}
       />
     )
-  } else if (pagina === 'mentores' && esMentor) {
+  } else if (paginaVisible === 'mentores' && esMentor) {
     contenido = (
       <PortalMentores
         yo={yo}
@@ -333,13 +338,13 @@ function App() {
         catalogo={catalogo}
       />
     )
-  } else if (pagina === 'usuarios' && esAdmin) {
+  } else if (paginaVisible === 'usuarios' && esAdmin) {
     contenido = (
       <Usuarios yo={yo} usuarios={usuarios} cambiarRol={cambiarRol} cambiarCarrera={cambiarCarrera} />
     )
-  } else if (pagina === 'reportes' && (esAdmin || esCoordinador)) {
+  } else if (paginaVisible === 'reportes' && (esAdmin || esCoordinador)) {
     contenido = <Reportes yo={yo} api={api} />
-  } else if (pagina === 'materias' && (esAdmin || esCoordinador)) {
+  } else if (paginaVisible === 'materias' && (esAdmin || esCoordinador)) {
     contenido = (
       <Materias
         yo={yo}
@@ -350,7 +355,7 @@ function App() {
         renombrarMateria={renombrarMateria}
       />
     )
-  } else if (pagina === 'especialidades' && (esAdmin || esCoordinador)) {
+  } else if (paginaVisible === 'especialidades' && (esAdmin || esCoordinador)) {
     contenido = (
       <EspecialidadMentores
         yo={yo}
@@ -360,10 +365,12 @@ function App() {
         quitar={quitarMateriaMentor}
       />
     )
-  } else if (pagina === 'privacidad') {
+  } else if (paginaVisible === 'privacidad') {
     contenido = <PoliticaPrivacidad />
-  } else if (pagina === 'ayuda') {
+  } else if (paginaVisible === 'ayuda') {
     contenido = <CentroAyuda verIntroduccion={() => setVerIntroduccion(true)} />
+  } else if (esGestion) {
+    contenido = <Reportes yo={yo} api={api} />
   } else {
     contenido = (
       <PanelPrincipal asesorias={asesorias} valorar={valorar} setPagina={irA} abrirDetalle={setDetalleId} />
@@ -387,7 +394,7 @@ function App() {
 
       <div className={'flex h-screen ' + (ocupado ? 'cursor-progress' : '')}>
         <Sidebar
-          pagina={pagina}
+          pagina={paginaVisible}
           setPagina={irA}
           esMentor={esMentor}
           esAdmin={esAdmin}

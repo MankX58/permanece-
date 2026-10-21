@@ -44,8 +44,10 @@ function Enlace({ id, texto, icono: Icono, pagina, setPagina }) {
 
 function Sidebar({ pagina, setPagina, esMentor, esAdmin, esCoordinador }) {
   // Cada grupo corresponde a un rol; cada persona ve solo los grupos que le tocan.
-  const grupos = [
-    {
+  // Admin y coordinador no ven el grupo de estudiante: no piden asesorías.
+  const grupos = []
+  if (!esAdmin && !esCoordinador) {
+    grupos.push({
       titulo: 'Estudiante',
       enlaces: [
         { id: 'panel', texto: 'Panel Principal', icono: LayoutGrid },
@@ -53,8 +55,8 @@ function Sidebar({ pagina, setPagina, esMentor, esAdmin, esCoordinador }) {
         { id: 'solicitudes', texto: 'Mis Solicitudes', icono: ClipboardList },
         { id: 'calendario', texto: 'Calendario', icono: CalendarDays },
       ],
-    },
-  ]
+    })
+  }
 
   if (esMentor) {
     grupos.push({

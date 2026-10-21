@@ -60,6 +60,8 @@ function soloRoles(...roles) {
 // Admins y coordinadores no atienden asesorías: el portal de mentores es solo para mentores y docentes.
 const soloMentores = soloRoles('mentor', 'docente')
 const soloAdmin = soloRoles('admin')
+// Pedir asesorías e inscribirse es de estudiantes (y de mentores o docentes que también estudian).
+const soloAsesorados = soloRoles('estudiante', 'mentor', 'docente')
 const soloReportes = soloRoles('admin', 'coordinador')
 const soloCoordinacion = soloRoles('admin', 'coordinador')
 
@@ -522,7 +524,7 @@ app.delete('/api/asesorias/:id', soloMentores, async (req, res) => {
   res.json({ ok: true })
 })
 
-app.post('/api/asesorias/:id/inscripcion', async (req, res) => {
+app.post('/api/asesorias/:id/inscripcion', soloAsesorados, async (req, res) => {
   const usuario = idUsuario(req)
   const [asesoria] = await sql`
     SELECT
@@ -622,7 +624,7 @@ async function conRegla(res, operacion) {
 }
 
 // El estudiante pide una asesoría y sugiere día y hora.
-app.post('/api/solicitudes', async (req, res) => {
+app.post('/api/solicitudes', soloAsesorados, async (req, res) => {
   await conRegla(res, () => agenda.crearSolicitud(req.usuario, req.body))
 })
 
