@@ -6,7 +6,7 @@ export function EnLinea({ datos, className = '' }) {
     <p className={'flex flex-wrap gap-x-6 gap-y-1 text-sm text-zinc-400 ' + className}>
       {datos.map((dato) => (
         <span key={dato.etiqueta}>
-          <strong className="text-white font-semibold tabular-nums">{dato.valor}</strong> {dato.etiqueta}
+          <strong className="text-red-400 font-semibold tabular-nums">{dato.valor}</strong> {dato.etiqueta}
         </span>
       ))}
     </p>
@@ -23,7 +23,7 @@ export function ListaDatos({ datos }) {
           className="grid grid-cols-[1fr_auto] items-baseline gap-x-4 py-3 border-b border-borde last:border-0 lg:[&:nth-last-child(2):nth-child(odd)]:border-0"
         >
           <dt className="text-sm text-zinc-300">{dato.etiqueta}</dt>
-          <dd className="text-lg font-semibold tabular-nums text-right">{dato.valor}</dd>
+          <dd className="text-lg font-semibold tabular-nums text-right text-red-400">{dato.valor}</dd>
           <dd className="col-span-2 text-xs text-zinc-400 mt-0.5">{dato.detalle}</dd>
         </div>
       ))}

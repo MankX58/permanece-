@@ -102,7 +102,7 @@ function ImpactoPanel({ api, programa }) {
               <thead className="text-xs text-zinc-400 border-b border-borde">
                 <tr>
                   <th className="py-3 pl-5 pr-3 font-semibold">Indicador</th>
-                  <th className="py-3 px-3 font-semibold text-right w-28">Atendidos</th>
+                  <th className="py-3 px-3 font-semibold text-right w-28 text-red-300">Atendidos</th>
                   <th className="py-3 pl-3 pr-5 font-semibold text-right w-28">No atendidos</th>
                 </tr>
               </thead>
@@ -118,7 +118,7 @@ function ImpactoPanel({ api, programa }) {
                       <p className="text-sm">{nombre}</p>
                       <p className="text-xs text-zinc-400 mt-0.5">{detalle}</p>
                     </td>
-                    <td className="py-3 px-3 text-right text-lg font-semibold tabular-nums">{conAsesoria}</td>
+                    <td className="py-3 px-3 text-right text-lg font-semibold tabular-nums text-red-400">{conAsesoria}</td>
                     <td className="py-3 pl-3 pr-5 text-right text-lg tabular-nums text-zinc-400">{sinAsesoria}</td>
                   </tr>
                 ))}

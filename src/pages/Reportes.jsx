@@ -4,6 +4,7 @@ import { Download, Search, Loader } from 'lucide-react'
 import { carreras } from '../data.js'
 import { fechaDeHoy } from '../fechas.js'
 import ImpactoPanel from '../components/ImpactoPanel.jsx'
+import Plegable from '../components/Plegable.jsx'
 import { ListaDatos } from '../components/Resumen.jsx'
 import { lista, item, toque } from '../animaciones.js'
 
@@ -96,7 +97,7 @@ function Reportes({ yo, api }) {
     <div className="max-w-6xl">
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">Reportes</h1>
+          <h1 className="text-2xl font-semibold text-red-400">Reportes</h1>
         </div>
         <motion.button
           {...toque}
@@ -121,7 +122,7 @@ function Reportes({ yo, api }) {
               className={
                 'text-xs font-semibold px-3.5 py-1.5 rounded-full border transition-colors ' +
                 (periodo === opcion.id
-                  ? 'bg-zinc-700 border-zinc-700 text-white'
+                  ? 'bg-primario/20 border-primario/20 text-red-200'
                   : 'bg-tarjeta border-transparent text-zinc-400 hover:text-white')
               }
             >
@@ -133,7 +134,7 @@ function Reportes({ yo, api }) {
             className={
               'text-xs font-semibold px-3.5 py-1.5 rounded-full border transition-colors ' +
               (periodo === 'personalizado'
-                ? 'bg-zinc-700 border-zinc-700 text-white'
+                ? 'bg-primario/20 border-primario/20 text-red-200'
                 : 'bg-tarjeta border-transparent text-zinc-400 hover:text-white')
             }
           >
@@ -218,8 +219,7 @@ function Reportes({ yo, api }) {
           </div>
 
           {reporte.programas && !esCoordinador && (
-            <section className="mt-10">
-              <h2 className="text-lg font-semibold mb-3">Por programa</h2>
+            <Plegable titulo="Por programa" className="mt-10">
               <div className="bg-tarjeta rounded-2xl overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead className="text-xs text-zinc-400 border-b border-borde">
@@ -252,15 +252,14 @@ function Reportes({ yo, api }) {
                   </tbody>
                 </table>
               </div>
-            </section>
+            </Plegable>
           )}
 
-          <section className="mt-10">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-              <h2 className="text-lg font-semibold">
-                Por materia
-                {programaActual && <span className="text-sm font-normal text-zinc-400 ml-3">{programaActual}</span>}
-              </h2>
+          <Plegable
+            titulo="Por materia"
+            subtitulo={programaActual}
+            className="mt-10"
+            acciones={
               <div className="flex flex-wrap items-center gap-4">
                 <label className="flex items-center gap-2 text-xs text-zinc-400 cursor-pointer">
                   <input type="checkbox" checked={soloActividad} onChange={(e) => setSoloActividad(e.target.checked)} />
@@ -276,8 +275,8 @@ function Reportes({ yo, api }) {
                   />
                 </div>
               </div>
-            </div>
-
+            }
+          >
             <div className="bg-tarjeta rounded-2xl overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead className="text-xs text-zinc-400 border-b border-borde">
@@ -339,7 +338,7 @@ function Reportes({ yo, api }) {
                 <p className="text-sm text-zinc-400 p-5">No hay materias que coincidan con el filtro.</p>
               )}
             </div>
-          </section>
+          </Plegable>
         </>
       )}
     </div>

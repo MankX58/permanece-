@@ -22,6 +22,7 @@ import CajaClicable from '../components/CajaClicable.jsx'
 import CamposSesion, { sesionVacia, sesionDe, datosDeSesion } from '../components/CamposSesion.jsx'
 import { urgencias } from '../data.js'
 import { EnLinea } from '../components/Resumen.jsx'
+import Plegable from '../components/Plegable.jsx'
 import { fechaCorta, mesDe, diaDe, horasDe, promedio, hace } from '../fechas.js'
 import { lista, item, toque, desplegar } from '../animaciones.js'
 
@@ -295,7 +296,7 @@ function PortalMentores({
     <div>
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">Bienvenido, {yo.nombre}</h1>
+          <h1 className="text-2xl font-semibold text-red-400">Bienvenido, {yo.nombre}</h1>
           <p className="text-sm text-zinc-400 mt-1">
             {rolEtiqueta} · Tienes {programadas} {programadas === 1 ? 'asesoría programada' : 'asesorías programadas'} y{' '}
             {pendientes.length} {pendientes.length === 1 ? 'solicitud pendiente' : 'solicitudes pendientes'}.
@@ -414,13 +415,7 @@ function PortalMentores({
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-x-10 gap-y-10 mt-10">
         <div className="xl:col-span-2 space-y-10">
-          <section>
-            <div className="flex items-center gap-3 mb-4">
-              <h2 className="text-lg font-semibold">Solicitudes disponibles</h2>
-              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700">
-                {pendientes.length}
-              </span>
-            </div>
+          <Plegable titulo="Solicitudes disponibles" cantidad={pendientes.length}>
 
             {pendientes.length === 0 && (
               <p className="text-sm text-zinc-400 bg-tarjeta border border-dashed border-borde rounded-xl p-5">
@@ -491,15 +486,9 @@ function PortalMentores({
                 })}
               </AnimatePresence>
             </div>
-          </section>
+          </Plegable>
 
-          <section>
-            <div className="flex items-center gap-3 mb-4">
-              <h2 className="text-lg font-semibold">Programadas</h2>
-              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700">
-                {programadas}
-              </span>
-            </div>
+          <Plegable titulo="Programadas" cantidad={programadas}>
 
             {programadas === 0 && (
               <p className="text-sm text-zinc-400 bg-tarjeta border border-dashed border-borde rounded-xl p-5">
@@ -526,7 +515,7 @@ function PortalMentores({
                     >
                       <div className="flex items-start gap-4">
                         <div className="shrink-0 w-11 text-center">
-                          <p className="text-xs text-zinc-400">{mesDe(asesoria.fecha)}</p>
+                          <p className="text-xs text-red-400">{mesDe(asesoria.fecha)}</p>
                           <p className="text-xl font-semibold leading-tight">{diaDe(asesoria.fecha)}</p>
                         </div>
 
@@ -729,16 +718,10 @@ function PortalMentores({
                 })}
               </AnimatePresence>
             </div>
-          </section>
+          </Plegable>
         </div>
 
-        <section>
-          <div className="flex items-center gap-3 mb-4">
-            <h2 className="text-lg font-semibold">Historial</h2>
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700">
-              {historial.length}
-            </span>
-          </div>
+        <Plegable titulo="Historial" cantidad={historial.length}>
 
           {historial.length === 0 && (
             <p className="text-sm text-zinc-400 bg-tarjeta border border-dashed border-borde rounded-xl p-5">
@@ -855,7 +838,7 @@ function PortalMentores({
               {verTodo ? 'Ver menos' : 'Ver todo (' + historial.length + ')'}
             </button>
           )}
-        </section>
+        </Plegable>
       </div>
     </div>
   )

@@ -5,6 +5,7 @@ import { DonutChart } from '../components/arc/donut-chart/donut-chart'
 import FilaHistorial from '../components/FilaHistorial.jsx'
 import CajaClicable from '../components/CajaClicable.jsx'
 import MiPromedio from '../components/MiPromedio.jsx'
+import Plegable from '../components/Plegable.jsx'
 import { EnLinea } from '../components/Resumen.jsx'
 import { fechaCorta, esEsteMes, promedio } from '../fechas.js'
 import { lista, item, toque } from '../animaciones.js'
@@ -64,7 +65,7 @@ function PanelPrincipal({ asesorias, valorar, setPagina, abrirDetalle, promedios
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold">Resumen académico</h1>
+      <h1 className="text-2xl font-semibold text-red-400">Resumen académico</h1>
 
       <EnLinea
         className="mt-2"
@@ -79,10 +80,10 @@ function PanelPrincipal({ asesorias, valorar, setPagina, abrirDetalle, promedios
 
       <CajaClicable
         onClick={proxima ? () => abrirDetalle(proxima.id) : undefined}
-        className="bg-tarjeta rounded-2xl p-5 mt-6 flex flex-col sm:flex-row sm:items-center gap-4"
+        className="bg-primario/10 rounded-2xl p-5 mt-6 flex flex-col sm:flex-row sm:items-center gap-4"
       >
         <div className="min-w-0 flex-1">
-          <p className={claseEtiqueta}>Próxima sesión</p>
+          <p className="text-xs text-red-300">Próxima sesión</p>
           {proxima ? (
             <>
               <p className="text-lg font-semibold mt-1">
@@ -127,8 +128,10 @@ function PanelPrincipal({ asesorias, valorar, setPagina, abrirDetalle, promedios
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-8">
         <div className="xl:col-span-2">
-          <div className="flex items-center justify-between gap-3 mb-4">
-            <h2 className="text-base font-semibold">Historial de asesorías</h2>
+          <Plegable
+            titulo="Historial de asesorías"
+            claseTitulo="text-base font-semibold"
+            acciones={
             <div className="flex gap-2">
               <select
                 value={materia}
@@ -149,7 +152,8 @@ function PanelPrincipal({ asesorias, valorar, setPagina, abrirDetalle, promedios
                 <Download size={16} />
               </motion.button>
             </div>
-          </div>
+            }
+          >
 
           {historial.length === 0 ? (
             <p className="text-sm text-zinc-400">
@@ -180,7 +184,9 @@ function PanelPrincipal({ asesorias, valorar, setPagina, abrirDetalle, promedios
             </div>
           )}
 
-          <h2 className="text-base font-semibold mt-8 mb-4">Tus asesorías por materia</h2>
+          </Plegable>
+
+          <Plegable titulo="Tus asesorías por materia" claseTitulo="text-base font-semibold" className="mt-8">
           <div className={claseTarjeta}>
             <DonutChart
               label="Asesorías por materia"
@@ -192,18 +198,23 @@ function PanelPrincipal({ asesorias, valorar, setPagina, abrirDetalle, promedios
               emptyLabel="Aún sin inscripciones"
             />
           </div>
+          </Plegable>
         </div>
 
         <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold">Próximas sesiones</h2>
+          <Plegable
+            titulo="Próximas sesiones"
+            cantidad={misSesiones.length}
+            claseTitulo="text-base font-semibold"
+            acciones={
             <button
               onClick={() => setPagina('solicitudes')}
-              className="text-xs text-zinc-400 hover:text-white"
+              className="text-xs text-red-400 hover:text-red-300"
             >
               Ver todas
             </button>
-          </div>
+            }
+          >
 
           {misSesiones.length === 0 && <p className="text-sm text-zinc-400">No tienes sesiones programadas.</p>}
 
@@ -224,6 +235,7 @@ function PanelPrincipal({ asesorias, valorar, setPagina, abrirDetalle, promedios
               </motion.button>
             ))}
           </motion.div>
+          </Plegable>
         </div>
       </div>
     </div>

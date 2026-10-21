@@ -1,3 +1,4 @@
+import Plegable from '../components/Plegable.jsx'
 import { useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { Search, Plus, Sparkles, Pencil, Trash2, RotateCcw, ChevronDown, Layers } from 'lucide-react'
@@ -146,7 +147,7 @@ function Materias({ yo, api, catalogo, agregarMateria, quitarMateria, renombrarM
 
   const encabezado = (
     <>
-      <h1 className="text-2xl font-semibold">Materias</h1>
+      <h1 className="text-2xl font-semibold text-red-400">Materias</h1>
 
       {!esCoordinador && (
         <select value={elegida} onChange={(e) => setElegida(e.target.value)} className={claseCampo + ' mt-6'}>
@@ -196,10 +197,7 @@ function Materias({ yo, api, catalogo, agregarMateria, quitarMateria, renombrarM
         {ordenados.length === 0 && <p className="text-sm text-zinc-400 mt-6">No hay materias comunes con ese nombre.</p>}
 
         {ordenados.map(([cuantas, materias]) => (
-          <section key={cuantas} className="mt-8">
-            <h2 className="text-xs font-semibold tracking-wider text-zinc-400 mb-3">
-              EN {cuantas} CARRERAS · {materias.length}
-            </h2>
+          <Plegable key={cuantas} titulo={"En " + cuantas + " carreras"} cantidad={materias.length} claseTitulo="text-base font-semibold" className="mt-8">
             <div className="space-y-2">
               {materias
                 .sort((a, b) => a.localeCompare(b, 'es'))
@@ -241,7 +239,7 @@ function Materias({ yo, api, catalogo, agregarMateria, quitarMateria, renombrarM
                   )
                 })}
             </div>
-          </section>
+          </Plegable>
         ))}
       </div>
     )
@@ -383,17 +381,14 @@ function Materias({ yo, api, catalogo, agregarMateria, quitarMateria, renombrarM
     if (visibles.length === 0) return null
 
     return (
-      <section className="mt-8">
-        <h2 className="text-xs font-semibold tracking-wider text-zinc-400">
-          {titulo} · {visibles.length}
-        </h2>
-        {descripcion && <p className="text-xs text-zinc-400 mt-1">{descripcion}</p>}
-        <div className="space-y-2 mt-3">
+      <Plegable titulo={titulo} cantidad={visibles.length} claseTitulo="text-base font-semibold" className="mt-8">
+        {descripcion && <p className="text-xs text-zinc-400 mb-3">{descripcion}</p>}
+        <div className="space-y-2">
           <AnimatePresence mode="popLayout" initial={false}>
             {visibles.map(fila)}
           </AnimatePresence>
         </div>
-      </section>
+      </Plegable>
     )
   }
 
@@ -478,7 +473,7 @@ function Materias({ yo, api, catalogo, agregarMateria, quitarMateria, renombrarM
               className={
                 'text-xs font-semibold px-3.5 py-1.5 rounded-full border transition-colors ' +
                 (filtro === opcion.id
-                  ? 'bg-zinc-700 border-zinc-700 text-white'
+                  ? 'bg-primario/20 border-primario/20 text-red-200'
                   : 'bg-tarjeta border-transparent text-zinc-400 hover:text-white')
               }
             >

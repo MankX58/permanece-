@@ -67,7 +67,7 @@ function Header({ abrirMenu, yo, notificaciones, marcarLeidas, borrar, abrir }) 
               <div className="flex items-center justify-between px-4 py-3 border-b border-borde">
                 <p className="text-sm font-semibold">Notificaciones</p>
                 {hayNuevas && (
-                  <button onClick={marcarLeidas} className="text-xs text-zinc-400 hover:text-white">
+                  <button onClick={marcarLeidas} className="text-xs text-red-400 hover:text-red-300">
                     Borrar todas
                   </button>
                 )}

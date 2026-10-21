@@ -56,7 +56,7 @@ function MiPromedio({ promedios, guardar, quitar }) {
           {promedios.length === 0 && <span className="text-xs text-zinc-500">Sin registrar</span>}
         </div>
 
-        <button onClick={() => setAbierto(!abierto)} className="shrink-0 text-xs text-zinc-400 hover:text-white">
+        <button onClick={() => setAbierto(!abierto)} className="shrink-0 text-xs text-red-400 hover:text-red-300">
           {abierto ? 'Cerrar' : 'Registrar'}
         </button>
       </div>

@@ -43,7 +43,7 @@ function EspecialidadMentores({ yo, mentores, catalogo, asignar, quitar }) {
 
   return (
     <div className="max-w-4xl">
-      <h1 className="text-2xl font-semibold">Mentores y materias</h1>
+      <h1 className="text-2xl font-semibold text-red-400">Mentores y materias</h1>
 
       <div className="flex flex-wrap items-center gap-3 mt-6">
         <div className="flex-1 min-w-48 flex items-center gap-2 border border-borde rounded-full px-3.5 focus-within:border-acento transition-colors">

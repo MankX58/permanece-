@@ -31,7 +31,7 @@ function Usuarios({ yo, usuarios, cambiarRol, cambiarCarrera }) {
 
   return (
     <div className="max-w-3xl">
-      <h1 className="text-2xl font-semibold">Usuarios y roles</h1>
+      <h1 className="text-2xl font-semibold text-red-400">Usuarios y roles</h1>
 
       <div className="flex items-center gap-2.5 border border-borde rounded-lg px-3 mt-6 focus-within:border-acento transition-colors">
         <Search size={16} className="text-zinc-400" />

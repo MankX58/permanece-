@@ -29,7 +29,7 @@ function Enlace({ id, texto, icono: Icono, pagina, setPagina }) {
         <motion.span
           layoutId="enlace-activo"
           transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          className="absolute inset-0 bg-white/[0.07] rounded-lg"
+          className="absolute inset-0 bg-primario/15 rounded-lg"
         />
       )}
       <span className={'relative ' + (activo ? 'text-acento' : '')}>
@@ -99,7 +99,7 @@ function Sidebar({ abierto, pagina, setPagina, esMentor, esAdmin, esCoordinador 
         >
           <GraduationCap size={18} />
         </motion.div>
-        <span className="text-base font-semibold">Permanece+</span>
+        <span className="text-base font-semibold">Permanece<span className="text-acento">+</span></span>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-3">

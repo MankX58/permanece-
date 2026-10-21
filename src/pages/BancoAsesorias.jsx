@@ -13,8 +13,8 @@ function BancoAsesorias({ asesorias, inscribir, cancelar, abrirDetalle, catalogo
   const [carrera, setCarrera] = useState(carreraInicial)
   const [tutor, setTutor] = useState('')
   const [modalidad, setModalidad] = useState('')
-  // El mentor o docente puede ocultar las que publicó él para ver solo a las que se puede inscribir.
-  const [ocultarMias, setOcultarMias] = useState(false)
+  // Las asesorías que publicó el propio mentor o docente arrancan ocultas; en Filtros puede mostrarlas.
+  const [ocultarMias, setOcultarMias] = useState(true)
   const [masFiltros, setMasFiltros] = useState(false)
   const tieneMias = asesorias.some((asesoria) => asesoria.esMia && !asesoria.pasada)
 
@@ -39,11 +39,11 @@ function BancoAsesorias({ asesorias, inscribir, cancelar, abrirDetalle, catalogo
 
   const claseSelect = 'bg-tarjeta rounded-lg px-3 py-2 text-sm'
   // Los filtros secundarios van plegados; el número avisa cuántos están puestos.
-  const filtrosActivos = [modalidad !== '', tutor !== '', tipo !== 'Todos', ocultarMias].filter(Boolean).length
+  const filtrosActivos = [modalidad !== '', tutor !== '', tipo !== 'Todos', ocultarMias && tieneMias].filter(Boolean).length
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold">Banco de asesorías</h1>
+      <h1 className="text-2xl font-semibold text-red-400">Banco de asesorías</h1>
 
       <div className="flex flex-wrap items-center gap-3 mt-6">
         <div className="flex-1 min-w-56 flex items-center gap-2.5 bg-tarjeta rounded-lg px-3 focus-within:outline focus-within:outline-2 focus-within:outline-acento/60 transition-colors">
@@ -102,7 +102,7 @@ function BancoAsesorias({ asesorias, inscribir, cancelar, abrirDetalle, catalogo
                     onClick={() => setTipo(opcion)}
                     className={
                       'px-3 py-1 rounded-md text-xs transition-colors ' +
-                      (tipo === opcion ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-white')
+                      (tipo === opcion ? 'bg-primario/20 text-red-200' : 'text-zinc-400 hover:text-white')
                     }
                   >
                     {opcion}
@@ -116,7 +116,7 @@ function BancoAsesorias({ asesorias, inscribir, cancelar, abrirDetalle, catalogo
                   aria-pressed={ocultarMias}
                   className={
                     'flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs transition-colors ' +
-                    (ocultarMias ? 'bg-zinc-700 text-white' : 'bg-tarjeta text-zinc-400 hover:text-white')
+                    (ocultarMias ? 'bg-primario/20 text-red-200' : 'bg-tarjeta text-zinc-400 hover:text-white')
                   }
                 >
                   <EyeOff size={14} />

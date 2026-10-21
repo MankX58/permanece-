@@ -50,7 +50,7 @@ function Calendario({ asesorias, abrirDetalle }) {
 
   return (
     <div className="max-w-5xl">
-      <h1 className="text-2xl font-semibold">Calendario</h1>
+      <h1 className="text-2xl font-semibold text-red-400">Calendario</h1>
 
       <div className="flex items-center justify-between gap-4 mt-6">
         <h2 className="text-lg font-semibold first-letter:uppercase">

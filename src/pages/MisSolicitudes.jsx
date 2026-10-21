@@ -17,6 +17,7 @@ import SelectorMateria from '../components/SelectorMateria.jsx'
 import Valoracion from '../components/Valoracion.jsx'
 import CajaClicable from '../components/CajaClicable.jsx'
 import { urgencias, maxCompaneros } from '../data.js'
+import Plegable from '../components/Plegable.jsx'
 import { fechaCorta, fechaDeHoy, mesDe, diaDe, hace } from '../fechas.js'
 import { item, toque } from '../animaciones.js'
 
@@ -49,6 +50,7 @@ function MisSolicitudes({
   const [urgencia, setUrgencia] = useState(urgencias[1])
   const [companeros, setCompaneros] = useState(0)
   const [filtro, setFiltro] = useState('Todas')
+  const [listaAbierta, setListaAbierta] = useState(true)
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   // Día y hora que el estudiante sugiere al pedir la asesoría.
   const [sugerida, setSugerida] = useState({ fecha: '', inicio: '', fin: '' })
@@ -115,14 +117,9 @@ function MisSolicitudes({
 
   return (
     <div className="max-w-3xl">
-      <h1 className="text-2xl font-semibold">Mis solicitudes</h1>
+      <h1 className="text-2xl font-semibold text-red-400">Mis solicitudes</h1>
 
-      <div className="flex items-center gap-3 mt-8 mb-4">
-        <h2 className="text-lg font-semibold">Próximas sesiones</h2>
-        <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700">
-          {proximas.length}
-        </span>
-      </div>
+      <Plegable titulo="Próximas sesiones" cantidad={proximas.length} className="mt-8">
 
       {proximas.length === 0 && (
         <p className="text-sm text-zinc-400 bg-tarjeta border border-dashed border-borde rounded-xl p-5">
@@ -144,7 +141,7 @@ function MisSolicitudes({
               className="bg-tarjeta rounded-xl p-4 flex items-center gap-4"
             >
               <div className="shrink-0 w-11 text-center">
-                <p className="text-xs text-zinc-400">{mesDe(asesoria.fecha)}</p>
+                <p className="text-xs text-red-400">{mesDe(asesoria.fecha)}</p>
                 <p className="text-xl font-semibold leading-tight">{diaDe(asesoria.fecha)}</p>
               </div>
 
@@ -198,14 +195,15 @@ function MisSolicitudes({
           ))}
         </AnimatePresence>
       </div>
+      </Plegable>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 mt-10 pb-3 border-b border-borde">
-        <div className="flex items-center gap-3">
-          <h2 className="text-lg font-semibold">Solicitudes actuales</h2>
-          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700">
-            Total: {mias.length}
-          </span>
-        </div>
+      <Plegable
+        titulo="Solicitudes actuales"
+        cantidad={mias.length}
+        className="mt-10"
+        abierto={listaAbierta}
+        alCambiar={setListaAbierta}
+        acciones={
         <div className="flex flex-wrap items-center gap-2">
           {filtros.map((opcion) => (
             <button
@@ -214,7 +212,7 @@ function MisSolicitudes({
               className={
                 'text-xs font-semibold px-3.5 py-1.5 rounded-full border transition-colors ' +
                 (filtro === opcion
-                  ? 'bg-zinc-700 border-zinc-700 text-white'
+                  ? 'bg-primario/20 border-primario/20 text-red-200'
                   : 'bg-tarjeta border-transparent text-zinc-400 hover:text-white')
               }
             >
@@ -223,7 +221,10 @@ function MisSolicitudes({
           ))}
           <motion.button
             {...toque}
-            onClick={() => setMostrarFormulario(!mostrarFormulario)}
+            onClick={() => {
+              setListaAbierta(true)
+              setMostrarFormulario(!mostrarFormulario)
+            }}
             className="flex items-center gap-1.5 text-xs font-semibold px-3.5 py-1.5 rounded-full bg-primario hover:bg-red-700 transition-colors"
           >
             <motion.span animate={{ rotate: mostrarFormulario ? 45 : 0 }} className="flex">
@@ -232,8 +233,8 @@ function MisSolicitudes({
             Nueva solicitud
           </motion.button>
         </div>
-      </div>
-
+        }
+      >
       <AnimatePresence>
         {mostrarFormulario && (
           <motion.form
@@ -583,6 +584,7 @@ function MisSolicitudes({
           })}
         </AnimatePresence>
       </div>
+      </Plegable>
     </div>
   )
 }

@@ -9,7 +9,7 @@ function CentroAyuda({ verIntroduccion }) {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-2xl font-semibold">Centro de ayuda</h1>
+      <h1 className="text-2xl font-semibold text-red-400">Centro de ayuda</h1>
 
       <button
         onClick={verIntroduccion}
