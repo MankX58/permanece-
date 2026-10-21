@@ -2,6 +2,7 @@ import express from 'express'
 import { auth } from 'express-oauth2-jwt-bearer'
 import { neon } from '@neondatabase/serverless'
 import { carreras } from '../src/data.js'
+import { VERSION_POLITICA } from '../src/privacidad.js'
 import { construirReporte, generarExcel } from './reportes.js'
 import { crearMaterias, ErrorDeMateria } from './materias.js'
 import { crearAgenda, datosSesion, perfilDe, ErrorDeAgenda } from './agenda.js'
@@ -28,9 +29,17 @@ app.use('/api', async (req, res, next) => {
       CASE WHEN (SELECT COUNT(*) FROM usuarios) = 0 THEN 'admin' ELSE 'estudiante' END
     )
     ON CONFLICT (id) DO UPDATE SET nombre = EXCLUDED.nombre, email = EXCLUDED.email
-    RETURNING id, nombre, email, rol, programa, carrera, introduccion_vista AS "introduccionVista"
+    RETURNING id, nombre, email, rol, programa, carrera, introduccion_vista AS "introduccionVista",
+      consentimiento_version AS consentimiento
   `
   req.usuario = usuario
+
+  // Sin la autorización del tratamiento de datos solo se puede cargar la pantalla y aceptarla.
+  const libre =
+    (req.method === 'GET' && req.path === '/datos') || (req.method === 'POST' && req.path === '/yo/consentimiento')
+  if (usuario.consentimiento !== VERSION_POLITICA && !libre) {
+    return res.status(403).json({ mensaje: 'Primero acepta la política de privacidad y el tratamiento de tus datos.' })
+  }
   next()
 })
 
@@ -231,6 +240,19 @@ app.put('/api/usuarios/:id/carrera', soloAdmin, async (req, res) => {
 })
 
 // El usuario terminó (u omitió) la introducción de su rol: no vuelve a salir hasta que el rol cambie.
+// El usuario autoriza el tratamiento de sus datos; se guarda cuándo y con qué versión de la política.
+app.post('/api/yo/consentimiento', async (req, res) => {
+  if (req.body.version !== VERSION_POLITICA) {
+    return res.status(400).json({ mensaje: 'La política cambió. Recarga la página y léela de nuevo.' })
+  }
+
+  await sql`
+    UPDATE usuarios SET consentimiento_en = now(), consentimiento_version = ${VERSION_POLITICA}
+    WHERE id = ${idUsuario(req)}
+  `
+  res.json({ ok: true })
+})
+
 app.post('/api/introduccion/vista', async (req, res) => {
   await sql`UPDATE usuarios SET introduccion_vista = ${req.usuario.rol} WHERE id = ${idUsuario(req)}`
   res.json({ ok: true })

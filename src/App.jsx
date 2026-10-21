@@ -18,11 +18,14 @@ import Materias from './pages/Materias.jsx'
 import EspecialidadMentores from './pages/EspecialidadMentores.jsx'
 import DetalleAsesoria from './components/DetalleAsesoria.jsx'
 import Introduccion from './components/Introduccion.jsx'
+import Consentimiento from './components/Consentimiento.jsx'
+import PoliticaPrivacidad from './pages/PoliticaPrivacidad.jsx'
+import { VERSION_POLITICA } from './privacidad.js'
 import ElegirCarrera from './components/ElegirCarrera.jsx'
 import { useApi } from './useApi.js'
 
 function App() {
-  const { isLoading, isAuthenticated } = useAuth0()
+  const { isLoading, isAuthenticated, logout } = useAuth0()
   const api = useApi()
 
   const [pagina, setPagina] = useState('panel')
@@ -176,6 +179,10 @@ function App() {
     enviar('/asesorias/' + id + '/valoracion', 'PUT', { valoracion, comentario }, 'Valoración guardada.')
   }
 
+  function aceptarPolitica() {
+    return enviar('/yo/consentimiento', 'POST', { version: VERSION_POLITICA }, 'Listo, tu autorización quedó registrada.')
+  }
+
   // El estudiante elige su carrera la primera vez; el admin la puede corregir.
   function elegirCarrera(carrera) {
     return enviar('/yo/carrera', 'PUT', { carrera }, 'Listo: verás las materias de ' + carrera + '.')
@@ -270,10 +277,12 @@ function App() {
   const detalle = asesorias.find((asesoria) => asesoria.id === detalleId)
   // Un estudiante sin carrera la elige antes de todo (también los que ya existían). La restricción depende del
   // rol: el estudiante pide asesorías solo de su carrera; los demás roles tienen sus propias reglas.
-  const faltaCarrera = ['estudiante', 'mentor'].includes(yo.rol) && !yo.carrera
+  // Lo primero es la autorización de datos; solo después se pide la carrera y se muestra la introducción.
+  const faltaConsentimiento = yo.consentimiento !== VERSION_POLITICA
+  const faltaCarrera = !faltaConsentimiento && ['estudiante', 'mentor'].includes(yo.rol) && !yo.carrera
   const catalogoParaPedir = yo.rol === 'estudiante' ? catalogo.filter((c) => c.nombre === yo.carrera) : catalogo
   const mostrarIntroduccion =
-    !faltaCarrera && (verIntroduccion || (yo.introduccionVista !== yo.rol && introVistaLocal !== yo.rol))
+    !faltaConsentimiento && !faltaCarrera && (verIntroduccion || (yo.introduccionVista !== yo.rol && introVistaLocal !== yo.rol))
 
   let contenido
   if (pagina === 'banco') {
@@ -351,6 +360,8 @@ function App() {
         quitar={quitarMateriaMentor}
       />
     )
+  } else if (pagina === 'privacidad') {
+    contenido = <PoliticaPrivacidad />
   } else if (pagina === 'ayuda') {
     contenido = <CentroAyuda verIntroduccion={() => setVerIntroduccion(true)} />
   } else {
@@ -426,6 +437,14 @@ function App() {
       </AnimatePresence>
 
       <AnimatePresence>
+        {faltaConsentimiento && (
+          <Consentimiento
+            key="consentimiento"
+            nombre={yo.nombre}
+            aceptar={aceptarPolitica}
+            rechazar={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+          />
+        )}
         {faltaCarrera && <ElegirCarrera key="carrera" nombre={yo.nombre} carreras={catalogo} elegir={elegirCarrera} />}
         {mostrarIntroduccion && (
           <Introduccion key="introduccion" rol={yo.rol} nombre={yo.nombre} cerrar={() => terminarIntroduccion(yo.rol)} />

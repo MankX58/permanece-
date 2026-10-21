@@ -8,6 +8,7 @@ import {
   Users,
   ShieldCheck,
   CircleHelp,
+  Lock,
   GraduationCap,
   Library,
   UserCog,
@@ -113,7 +114,8 @@ function Sidebar({ pagina, setPagina, esMentor, esAdmin, esCoordinador }) {
         ))}
       </nav>
 
-      <div className="border-t border-borde p-3">
+      <div className="border-t border-borde p-3 space-y-1">
+        <Enlace id="privacidad" texto="Política de privacidad" icono={Lock} pagina={pagina} setPagina={setPagina} />
         <Enlace id="ayuda" texto="Centro de Ayuda" icono={CircleHelp} pagina={pagina} setPagina={setPagina} />
       </div>
     </aside>

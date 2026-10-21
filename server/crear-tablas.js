@@ -63,6 +63,10 @@ await sql`ALTER TABLE inscripciones ADD COLUMN IF NOT EXISTS asistio BOOLEAN`
 await sql`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS programa TEXT`
 await sql`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS introduccion_vista TEXT`
 
+// Autorización del tratamiento de datos (Ley 1581 de 2012): cuándo y qué versión de la política aceptó.
+await sql`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS consentimiento_en TIMESTAMPTZ`
+await sql`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS consentimiento_version TEXT`
+
 // Carrera del propio usuario (la elige el estudiante al entrar). Es distinta de "programa", que es el que
 // coordina un coordinador, y se conserva aunque cambie el rol.
 await sql`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS carrera TEXT`
