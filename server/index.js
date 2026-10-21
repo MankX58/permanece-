@@ -185,10 +185,20 @@ app.get('/api/datos', async (req, res) => {
   // El coordinador solo ve las asesorías de las materias de su programa (sin programa, ninguna).
   const delPrograma = yo.rol === 'coordinador' ? vigente.find((c) => c.nombre === yo.programa)?.materias || [] : null
 
+  // Estudiantes y mentores solo ven el banco de su carrera. Siguen viendo las asesorías que dan o a las que
+  // ya están inscritos, aunque sean de otra, para no perder su calendario ni su historial.
+  const deSuCarrera =
+    ['estudiante', 'mentor'].includes(yo.rol) && yo.carrera ? vigente.find((c) => c.nombre === yo.carrera)?.materias || [] : null
+  const visibles = delPrograma
+    ? asesorias.filter((a) => delPrograma.includes(a.materia))
+    : deSuCarrera
+      ? asesorias.filter((a) => deSuCarrera.includes(a.materia) || a.esMia || a.inscrita)
+      : asesorias
+
   // materiasAsignadas: lista de materias que el mentor o docente puede atender; null = sin restricción (admin).
   res.json({
     yo: { ...yo, materiasAsignadas: asignadas },
-    asesorias: delPrograma ? asesorias.filter((a) => delPrograma.includes(a.materia)) : asesorias,
+    asesorias: visibles,
     solicitudes,
     notificaciones,
     promedios,
@@ -595,6 +605,12 @@ app.post('/api/asesorias/:id/inscripcion', soloAsesorados, async (req, res) => {
   }
   if (asesoria.tutor_id === usuario) {
     return res.status(400).json({ mensaje: 'No puedes inscribirte a tu propia asesoría.' })
+  }
+  if (['estudiante', 'mentor'].includes(req.usuario.rol) && req.usuario.carrera) {
+    const deSuCarrera = (await catalogo()).find((c) => c.nombre === req.usuario.carrera)?.materias || []
+    if (!deSuCarrera.includes(asesoria.materia)) {
+      return res.status(400).json({ mensaje: 'Esa asesoría no es de tu programa.' })
+    }
   }
   if (asesoria.inscritos >= asesoria.cupos) {
     return res.status(400).json({ mensaje: 'Ya no hay cupos.' })

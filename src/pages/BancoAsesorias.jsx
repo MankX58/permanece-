@@ -6,7 +6,16 @@ import { item, desplegar } from '../animaciones.js'
 
 const tipos = ['Todos', 'Docente', 'Voluntario']
 
-function BancoAsesorias({ asesorias, inscribir, cancelar, abrirDetalle, catalogo, carreraInicial = '', busquedaInicial = '' }) {
+function BancoAsesorias({
+  asesorias,
+  inscribir,
+  cancelar,
+  abrirDetalle,
+  catalogo,
+  carreraInicial = '',
+  carreraFija = false,
+  busquedaInicial = '',
+}) {
   const [busqueda, setBusqueda] = useState(busquedaInicial)
   const [tipo, setTipo] = useState('Todos')
   // Las asesorías se agrupan por la carrera de su materia (catálogo). El estudiante arranca con la suya.
@@ -44,6 +53,7 @@ function BancoAsesorias({ asesorias, inscribir, cancelar, abrirDetalle, catalogo
   return (
     <div>
       <h1 className="text-2xl font-semibold text-red-400">Banco de asesorías</h1>
+      {carreraFija && <p className="text-sm text-zinc-400 mt-1">{carrera}</p>}
 
       <div className="flex flex-wrap items-center gap-3 mt-6">
         <div className="flex-1 min-w-56 flex items-center gap-2.5 bg-tarjeta rounded-lg px-3 focus-within:outline focus-within:outline-2 focus-within:outline-acento/60 transition-colors">
@@ -57,12 +67,14 @@ function BancoAsesorias({ asesorias, inscribir, cancelar, abrirDetalle, catalogo
           />
         </div>
 
-        <select value={carrera} onChange={(e) => setCarrera(e.target.value)} className={claseSelect + ' max-w-60'}>
-          <option value="">Todas las carreras</option>
-          {catalogo.map((opcion) => (
-            <option key={opcion.nombre}>{opcion.nombre}</option>
-          ))}
-        </select>
+        {!carreraFija && (
+          <select value={carrera} onChange={(e) => setCarrera(e.target.value)} className={claseSelect + ' max-w-60'}>
+            <option value="">Todas las carreras</option>
+            {catalogo.map((opcion) => (
+              <option key={opcion.nombre}>{opcion.nombre}</option>
+            ))}
+          </select>
+        )}
 
         <button
           onClick={() => setMasFiltros(!masFiltros)}
@@ -128,7 +140,7 @@ function BancoAsesorias({ asesorias, inscribir, cancelar, abrirDetalle, catalogo
         )}
       </AnimatePresence>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 mt-6">
         <AnimatePresence mode="popLayout">
           {resultados.map((asesoria, posicion) => (
             <motion.div

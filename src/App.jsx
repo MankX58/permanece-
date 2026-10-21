@@ -306,7 +306,8 @@ function App() {
       <BancoAsesorias
         asesorias={asesorias}
         catalogo={catalogo}
-        carreraInicial={yo.rol === 'estudiante' ? yo.carrera || '' : ''}
+        carreraInicial={yo.carrera || ''}
+        carreraFija={['estudiante', 'mentor'].includes(yo.rol) && Boolean(yo.carrera)}
         inscribir={inscribir}
         cancelar={cancelar}
         busquedaInicial={busquedaBanco}

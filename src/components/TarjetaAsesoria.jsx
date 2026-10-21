@@ -1,15 +1,37 @@
 import { motion } from 'motion/react'
-import { MapPin, Video } from 'lucide-react'
+import { MapPin, Video, Clock, UserPlus, X } from 'lucide-react'
 import CajaClicable from './CajaClicable.jsx'
 import { mesDe, diaDe } from '../fechas.js'
 import { toque } from '../animaciones.js'
+
+function diaDeSemana(fecha) {
+  const [anio, mes, dia] = fecha.split('-').map(Number)
+  return new Date(anio, mes - 1, dia).toLocaleDateString('es-CO', { weekday: 'short' }).replace('.', '')
+}
+
+// Ocupación: un segmento por cupo cuando son pocos, o una barra continua cuando son muchos.
+function Cupos({ inscritos, cupos }) {
+  if (cupos > 12) {
+    return (
+      <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+        <div className="h-full bg-acento rounded-full" style={{ width: Math.min(100, (inscritos / cupos) * 100) + '%' }} />
+      </div>
+    )
+  }
+  return (
+    <div className="flex gap-1">
+      {Array.from({ length: cupos }, (_, i) => (
+        <span key={i} className={'h-1.5 flex-1 rounded-full ' + (i < inscritos ? 'bg-acento' : 'bg-zinc-800')} />
+      ))}
+    </div>
+  )
+}
 
 function TarjetaAsesoria({ asesoria, inscribir, cancelar, abrirDetalle }) {
   const esMia = asesoria.esMia
   const inscrita = asesoria.inscrita
   const lleno = asesoria.inscritos >= asesoria.cupos && !inscrita
   const libres = Math.max(0, asesoria.cupos - asesoria.inscritos)
-  const ocupacion = Math.min(100, (asesoria.inscritos / asesoria.cupos) * 100)
   const iniciales = asesoria.tutor
     .split(' ')
     .map((palabra) => palabra[0])
@@ -19,21 +41,34 @@ function TarjetaAsesoria({ asesoria, inscribir, cancelar, abrirDetalle }) {
 
   // Un solo aviso de estado por tarjeta; el resto de datos va en texto normal.
   const estado = esMia ? 'Tu asesoría' : inscrita ? 'Inscrito' : lleno ? 'Sin cupos' : null
+  const claseEstado = inscrita
+    ? 'bg-emerald-500/15 text-emerald-400'
+    : lleno
+      ? 'bg-primario/15 text-red-300'
+      : 'bg-zinc-800 text-zinc-300'
 
-  const claseBoton = 'w-full py-2 rounded-lg text-sm font-medium transition-colors '
+  const claseBoton = 'w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm transition-all '
 
-  let boton
-  if (esMia || lleno) {
-    boton = null
-  } else if (inscrita) {
+  let boton = null
+  if (inscrita) {
     boton = (
-      <motion.button {...toque} onClick={() => cancelar(asesoria.id)} className={claseBoton + 'text-zinc-400 hover:text-white hover:bg-zinc-800'}>
+      <motion.button
+        {...toque}
+        onClick={() => cancelar(asesoria.id)}
+        className={claseBoton + 'font-medium text-red-300 border border-primario/30 hover:bg-primario/10 hover:border-primario/50'}
+      >
+        <X size={15} />
         Cancelar inscripción
       </motion.button>
     )
-  } else {
+  } else if (!esMia && !lleno) {
     boton = (
-      <motion.button {...toque} onClick={() => inscribir(asesoria.id)} className={claseBoton + 'bg-primario hover:bg-red-700 font-semibold'}>
+      <motion.button
+        {...toque}
+        onClick={() => inscribir(asesoria.id)}
+        className={claseBoton + 'font-semibold bg-primario hover:bg-red-500 shadow-md shadow-red-950/50 ring-1 ring-inset ring-white/15'}
+      >
+        <UserPlus size={15} />
         Inscribirme
       </motion.button>
     )
@@ -42,11 +77,35 @@ function TarjetaAsesoria({ asesoria, inscribir, cancelar, abrirDetalle }) {
   return (
     <CajaClicable
       onClick={() => abrirDetalle(asesoria.id)}
-      className="h-full bg-tarjeta hover:bg-zinc-900 transition-colors rounded-2xl p-5 flex flex-col"
+      className="h-full bg-tarjeta ring-1 ring-white/[0.05] hover:ring-primario/30 transition rounded-2xl p-5 flex flex-col"
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="shrink-0 size-9 rounded-full bg-primario/15 text-red-300 text-xs font-semibold flex items-center justify-center">
+      <div className="flex gap-4">
+        <div className="shrink-0 w-12 text-center">
+          <p className="text-xs text-red-400">{mesDe(asesoria.fecha).toLowerCase()}</p>
+          <p className="text-3xl font-semibold leading-none mt-1 tabular-nums">{diaDe(asesoria.fecha)}</p>
+          <p className="text-xs text-zinc-400 mt-1.5">{diaDeSemana(asesoria.fecha)}</p>
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <h3 className="text-base font-semibold leading-snug">{asesoria.materia}</h3>
+          <p className="text-sm text-zinc-400 mt-1 line-clamp-2">{asesoria.descripcion}</p>
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-zinc-300">
+        <span className="flex items-center gap-1.5">
+          <Clock size={13} className="text-acento" />
+          {asesoria.horario}
+        </span>
+        <span className="flex items-center gap-1.5 min-w-0">
+          {asesoria.virtual ? <Video size={13} className="text-acento shrink-0" /> : <MapPin size={13} className="text-acento shrink-0" />}
+          <span className="truncate">{asesoria.lugar}</span>
+        </span>
+      </div>
+
+      <div className="mt-4 pt-4 border-t border-borde flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="shrink-0 size-8 rounded-full bg-primario/15 text-red-300 text-xs font-semibold flex items-center justify-center">
             {iniciales}
           </div>
           <div className="min-w-0">
@@ -57,41 +116,14 @@ function TarjetaAsesoria({ asesoria, inscribir, cancelar, abrirDetalle }) {
             </p>
           </div>
         </div>
-        {estado && (
-          <span
-            className={
-              'shrink-0 text-xs px-2 py-0.5 rounded-full ' +
-              (inscrita ? 'bg-emerald-500/15 text-emerald-400' : lleno ? 'bg-primario/15 text-red-300' : 'bg-zinc-800 text-zinc-300')
-            }
-          >
-            {estado}
-          </span>
-        )}
-      </div>
-
-      <h3 className="text-base font-semibold mt-4">{asesoria.materia}</h3>
-      <p className="text-sm text-zinc-400 mt-1 line-clamp-2">{asesoria.descripcion}</p>
-
-      <div className="mt-4 space-y-1.5 text-sm">
-        <p className="font-medium">
-          <span className="text-red-400">
-            {diaDe(asesoria.fecha)} {mesDe(asesoria.fecha).toLowerCase()}
-          </span>{' '}
-          · {asesoria.horario}
-        </p>
-        <p className="flex items-center gap-1.5 text-zinc-400 text-xs">
-          {asesoria.virtual ? <Video size={13} className="text-acento" /> : <MapPin size={13} className="text-acento" />}
-          {asesoria.lugar}
-        </p>
+        {estado && <span className={'shrink-0 text-xs px-2.5 py-0.5 rounded-full ' + claseEstado}>{estado}</span>}
       </div>
 
       <div className="mt-4">
-        <div className="h-1 bg-zinc-800 rounded-full overflow-hidden">
-          <div className="h-full bg-acento rounded-full" style={{ width: ocupacion + '%' }} />
-        </div>
-        <p className="text-xs text-zinc-400 mt-1.5">
-          {lleno ? 'Sin cupos' : libres + (libres === 1 ? ' cupo libre' : ' cupos libres')} · {asesoria.inscritos} de{' '}
-          {asesoria.cupos} inscritos
+        <Cupos inscritos={asesoria.inscritos} cupos={asesoria.cupos} />
+        <p className="text-xs text-zinc-400 mt-2">
+          {asesoria.inscritos} de {asesoria.cupos} inscritos ·{' '}
+          {lleno ? 'sin cupos' : libres + (libres === 1 ? ' cupo libre' : ' cupos libres')}
         </p>
       </div>
 
