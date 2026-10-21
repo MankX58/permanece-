@@ -3,6 +3,7 @@ import { motion } from 'motion/react'
 import { Download, Search, Loader } from 'lucide-react'
 import { carreras } from '../data.js'
 import { fechaDeHoy } from '../fechas.js'
+import ImpactoPanel from '../components/ImpactoPanel.jsx'
 import { lista, item, toque } from '../animaciones.js'
 
 function fechaMenos(dias) {
@@ -117,7 +118,10 @@ function Reportes({ yo, api }) {
         </motion.button>
       </div>
 
-      <div className="bg-tarjeta border border-borde rounded-2xl p-4 mt-6">
+      <ImpactoPanel api={api} programa={esCoordinador ? '' : programa} />
+
+      <h2 className="text-lg font-bold mt-10">Uso de la plataforma</h2>
+      <div className="bg-tarjeta border border-borde rounded-2xl p-4 mt-4">
         <div className="flex flex-wrap items-center gap-2">
           {periodos.map((opcion) => (
             <button

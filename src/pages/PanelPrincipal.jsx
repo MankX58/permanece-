@@ -5,10 +5,11 @@ import { AnimatedCounter } from '../components/arc/animated-counter/animated-cou
 import { DonutChart } from '../components/arc/donut-chart/donut-chart'
 import FilaHistorial from '../components/FilaHistorial.jsx'
 import CajaClicable from '../components/CajaClicable.jsx'
+import MiPromedio from '../components/MiPromedio.jsx'
 import { fechaCorta, esEsteMes, promedio } from '../fechas.js'
 import { lista, item, toque } from '../animaciones.js'
 
-function PanelPrincipal({ asesorias, valorar, setPagina, abrirDetalle }) {
+function PanelPrincipal({ asesorias, valorar, setPagina, abrirDetalle, promedios, guardarPromedio, quitarPromedio }) {
   const [materia, setMateria] = useState('Todas')
 
   const inscritas = asesorias.filter((asesoria) => asesoria.inscrita)
@@ -161,6 +162,8 @@ function PanelPrincipal({ asesorias, valorar, setPagina, abrirDetalle }) {
           )}
         </CajaClicable>
       </motion.div>
+
+      {promedios && <MiPromedio promedios={promedios} guardar={guardarPromedio} quitar={quitarPromedio} />}
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-8">
         <div className="xl:col-span-2">

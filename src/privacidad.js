@@ -1,5 +1,5 @@
 // Cambiar la versión cuando cambie el texto: a todos se les vuelve a pedir la autorización.
-export const VERSION_POLITICA = '2026-10-20'
+export const VERSION_POLITICA = '2026-10-21'
 
 // Correo para ejercer los derechos de los titulares. Si queda vacío, se indica que se ejercen con el administrador.
 export const CONTACTO_PRIVACIDAD = ''
@@ -16,9 +16,10 @@ export const politica = [
     lista: [
       'Datos de tu cuenta: nombre, correo electrónico y el identificador que entrega el servicio de inicio de sesión.',
       'Datos que tú indicas: tu carrera y, si eres coordinador, el programa que coordinas.',
+      'Tu promedio académico de cada periodo, solo si decides registrarlo. Es opcional.',
       'Datos de uso: las asesorías en las que te inscribes o que ofreces, la asistencia que registra el mentor, tus valoraciones y comentarios, tus solicitudes de asesoría (materia, tema, urgencia y horario sugerido) y tus notificaciones.',
     ],
-    parrafos: ['No pedimos datos sensibles ni información académica de la universidad, como notas o historial de matrícula.'],
+    parrafos: ['No pedimos datos sensibles ni consultamos información de la universidad, como notas o historial de matrícula: tu promedio solo existe aquí si tú lo escribes.'],
   },
   {
     titulo: 'Para qué los usamos',
@@ -27,6 +28,7 @@ export const politica = [
       'Organizar las asesorías: publicarlas, inscribirte, agendar solicitudes y avisarte de cambios.',
       'Registrar cada sesión (asistencia, resumen y valoración) para dar seguimiento al acompañamiento.',
       'Elaborar reportes agregados por materia y programa para la coordinación, sin nombres de estudiantes.',
+      'Medir si recibir asesorías se relaciona con un mejor promedio y con menos riesgo de deserción, comparando grupos de estudiantes en cifras agregadas.',
       'Mejorar el servicio y mantener la plataforma segura.',
     ],
   },
@@ -35,7 +37,8 @@ export const politica = [
     lista: [
       'El mentor o docente de una asesoría ve el nombre de quienes se inscribieron a ella.',
       'Los estudiantes ven el nombre de quien ofrece la asesoría.',
-      'La coordinación ve reportes con cifras, no con nombres de estudiantes, y los mentores de su programa.',
+      'La coordinación ve reportes y comparaciones con cifras, no con nombres de estudiantes, y los mentores de su programa. Si un grupo tiene menos de 3 personas, la cifra no se muestra.',
+      'Nadie ve tu promedio individual: solo entra en esas cifras agrupadas.',
       'El administrador ve el nombre, correo, rol y carrera de los usuarios para gestionar la plataforma.',
     ],
     parrafos: ['No vendemos ni cedemos tus datos a terceros con fines comerciales.'],

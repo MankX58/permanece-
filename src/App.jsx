@@ -179,6 +179,15 @@ function App() {
     enviar('/asesorias/' + id + '/valoracion', 'PUT', { valoracion, comentario }, 'Valoración guardada.')
   }
 
+  // El estudiante registra su promedio por periodo (opcional): alimenta el panel de impacto del coordinador.
+  function guardarPromedio(periodo, promedio) {
+    return enviar('/yo/promedio', 'PUT', { periodo, promedio: Number(promedio) }, 'Promedio guardado.')
+  }
+
+  function quitarPromedio(periodo) {
+    return enviar('/yo/promedio/' + periodo, 'DELETE', null, 'Promedio eliminado.')
+  }
+
   function aceptarPolitica() {
     return enviar('/yo/consentimiento', 'POST', { version: VERSION_POLITICA }, 'Listo, tu autorización quedó registrada.')
   }
@@ -270,7 +279,7 @@ function App() {
     return <Cargando error={errorCarga} />
   }
 
-  const { yo, asesorias, solicitudes, usuarios, notificaciones, catalogo, mentores } = datos
+  const { yo, asesorias, solicitudes, usuarios, notificaciones, promedios, catalogo, mentores } = datos
   const esMentor = ['mentor', 'docente'].includes(yo.rol)
   const esAdmin = yo.rol === 'admin'
   const esCoordinador = yo.rol === 'coordinador'
@@ -373,7 +382,15 @@ function App() {
     contenido = <Reportes yo={yo} api={api} />
   } else {
     contenido = (
-      <PanelPrincipal asesorias={asesorias} valorar={valorar} setPagina={irA} abrirDetalle={setDetalleId} />
+      <PanelPrincipal
+        asesorias={asesorias}
+        valorar={valorar}
+        setPagina={irA}
+        abrirDetalle={setDetalleId}
+        promedios={['estudiante', 'mentor'].includes(yo.rol) ? promedios : null}
+        guardarPromedio={guardarPromedio}
+        quitarPromedio={quitarPromedio}
+      />
     )
   }
 

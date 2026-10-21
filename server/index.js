@@ -3,6 +3,8 @@ import { auth } from 'express-oauth2-jwt-bearer'
 import { neon } from '@neondatabase/serverless'
 import { carreras } from '../src/data.js'
 import { VERSION_POLITICA } from '../src/privacidad.js'
+import { periodoActual, periodoValido, ultimosPeriodos } from '../src/periodos.js'
+import { construirImpacto } from './impacto.js'
 import { construirReporte, generarExcel } from './reportes.js'
 import { crearMaterias, ErrorDeMateria } from './materias.js'
 import { crearAgenda, datosSesion, perfilDe, ErrorDeAgenda } from './agenda.js'
@@ -140,6 +142,15 @@ function buscarSolicitudes(usuario, esMentor) {
   `
 }
 
+function buscarPromedios(usuario) {
+  return sql`
+    SELECT periodo, promedio::float8 AS promedio
+    FROM promedios
+    WHERE usuario_id = ${usuario}
+    ORDER BY periodo DESC
+  `
+}
+
 function buscarNotificaciones(usuario) {
   return sql`
     SELECT id, texto, destino
@@ -160,10 +171,11 @@ app.get('/api/datos', async (req, res) => {
 
   const esCoordinacion = esAdmin || yo.rol === 'coordinador'
 
-  const [asesorias, solicitudes, notificaciones, usuarios, vigente, asignadas, mentores] = await Promise.all([
+  const [asesorias, solicitudes, notificaciones, promedios, usuarios, vigente, asignadas, mentores] = await Promise.all([
     buscarAsesorias(yo.id),
     buscarSolicitudes(yo.id, esMentor),
     buscarNotificaciones(yo.id),
+    buscarPromedios(yo.id),
     esAdmin ? buscarUsuarios() : [],
     catalogo(),
     ['mentor', 'docente'].includes(yo.rol) ? materias.asignadasA(yo.id) : null,
@@ -179,6 +191,7 @@ app.get('/api/datos', async (req, res) => {
     asesorias: delPrograma ? asesorias.filter((a) => delPrograma.includes(a.materia)) : asesorias,
     solicitudes,
     notificaciones,
+    promedios,
     usuarios,
     catalogo: vigente,
     mentores,
@@ -238,6 +251,32 @@ app.put('/api/usuarios/:id/carrera', soloAdmin, async (req, res) => {
 
   await sql`UPDATE usuarios SET carrera = ${carrera} WHERE id = ${req.params.id}`
   await notificar(req.params.id, 'Tu carrera quedó registrada como ' + carrera + '.')
+  res.json({ ok: true })
+})
+
+// El estudiante (o mentor, que también estudia) registra su promedio del periodo actual o de los dos anteriores.
+// Es opcional y solo se usa en cifras agrupadas para medir el impacto de las asesorías.
+app.put('/api/yo/promedio', soloRoles('estudiante', 'mentor'), async (req, res) => {
+  const { periodo } = req.body
+  const promedio = Math.round(Number(req.body.promedio) * 100) / 100
+
+  if (!ultimosPeriodos(3).includes(periodo)) {
+    return res.status(400).json({ mensaje: 'Solo puedes registrar el periodo actual o los dos anteriores.' })
+  }
+  if (req.body.promedio === '' || req.body.promedio === null || !Number.isFinite(promedio) || promedio < 0 || promedio > 5) {
+    return res.status(400).json({ mensaje: 'El promedio debe estar entre 0,0 y 5,0.' })
+  }
+
+  await sql`
+    INSERT INTO promedios (usuario_id, periodo, promedio)
+    VALUES (${idUsuario(req)}, ${periodo}, ${promedio})
+    ON CONFLICT (usuario_id, periodo) DO UPDATE SET promedio = EXCLUDED.promedio, registrado_en = now()
+  `
+  res.json({ ok: true })
+})
+
+app.delete('/api/yo/promedio/:periodo', async (req, res) => {
+  await sql`DELETE FROM promedios WHERE usuario_id = ${idUsuario(req)} AND periodo = ${req.params.periodo}`
   res.json({ ok: true })
 })
 
@@ -311,6 +350,19 @@ app.get('/api/reportes', soloReportes, async (req, res) => {
   }
 
   res.json(await construirReporte(sql, { desde, hasta, programa, carreras: await catalogo() }))
+})
+
+// Impacto de las asesorías en el promedio y el riesgo de deserción, calculado al momento de pedirlo.
+// El coordinador solo ve su programa; el admin elige uno o ve todos.
+app.get('/api/impacto', soloReportes, async (req, res) => {
+  const { programa, sinPrograma } = filtrosDeReporte(req)
+
+  if (sinPrograma) {
+    return res.status(400).json({ mensaje: 'Aún no tienes un programa asignado. Pídele al administrador que lo asigne.' })
+  }
+
+  const periodo = periodoValido(req.query.periodo) ? req.query.periodo : periodoActual()
+  res.json(await construirImpacto(sql, { programa, periodo }))
 })
 
 app.get('/api/reportes/excel', soloReportes, async (req, res) => {

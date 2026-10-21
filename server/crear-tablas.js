@@ -117,6 +117,18 @@ await sql`
   )
 `
 
+// Promedio académico que el propio estudiante registra por periodo ("2026-1" = ene-jun, "2026-2" = jul-dic).
+// Alimenta el panel de impacto del coordinador, siempre en cifras agrupadas y sin nombres.
+await sql`
+  CREATE TABLE IF NOT EXISTS promedios (
+    usuario_id TEXT NOT NULL,
+    periodo TEXT NOT NULL,
+    promedio NUMERIC(3, 2) NOT NULL CHECK (promedio >= 0 AND promedio <= 5),
+    registrado_en TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (usuario_id, periodo)
+  )
+`
+
 // A dónde lleva la notificación al abrirla: 'asesoria:ID' (su detalle) o el nombre de una página. Null = solo informa.
 await sql`ALTER TABLE notificaciones ADD COLUMN IF NOT EXISTS destino TEXT`
 
