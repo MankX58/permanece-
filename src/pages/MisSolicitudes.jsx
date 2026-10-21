@@ -339,11 +339,6 @@ function MisSolicitudes({
                   </label>
                 )}
               </div>
-              {companeros > 0 && (
-                <p className="text-[11px] text-zinc-500 mt-1">
-                  Serían hasta {companeros + 1} contigo. Al agendarla aparece en el banco con {companeros} cupos libres.
-                </p>
-              )}
             </div>
             <motion.button
               {...toque}

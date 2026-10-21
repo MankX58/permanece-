@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { Search } from 'lucide-react'
+import { Search, EyeOff } from 'lucide-react'
 import TarjetaAsesoria from '../components/TarjetaAsesoria.jsx'
 import { item } from '../animaciones.js'
 
@@ -13,6 +13,9 @@ function BancoAsesorias({ asesorias, inscribir, cancelar, abrirDetalle, catalogo
   const [carrera, setCarrera] = useState(carreraInicial)
   const [tutor, setTutor] = useState('')
   const [modalidad, setModalidad] = useState('')
+  // El mentor o docente puede ocultar las que publicó él para ver solo a las que se puede inscribir.
+  const [ocultarMias, setOcultarMias] = useState(false)
+  const tieneMias = asesorias.some((asesoria) => asesoria.esMia && !asesoria.pasada)
 
   const tutores = []
   asesorias.forEach((asesoria) => {
@@ -23,6 +26,7 @@ function BancoAsesorias({ asesorias, inscribir, cancelar, abrirDetalle, catalogo
 
   const resultados = asesorias.filter((asesoria) => {
     if (asesoria.pasada) return false
+    if (ocultarMias && asesoria.esMia) return false
     const texto = (asesoria.materia + ' ' + asesoria.descripcion + ' ' + asesoria.tutor).toLowerCase()
     if (!texto.includes(busqueda.toLowerCase())) return false
     if (tipo !== 'Todos' && asesoria.tipo !== tipo) return false
@@ -92,6 +96,20 @@ function BancoAsesorias({ asesorias, inscribir, cancelar, abrirDetalle, catalogo
             </button>
           ))}
         </div>
+
+        {tieneMias && (
+          <button
+            onClick={() => setOcultarMias(!ocultarMias)}
+            aria-pressed={ocultarMias}
+            className={
+              'flex items-center justify-center gap-1.5 border rounded-lg px-3 py-2 text-xs font-semibold whitespace-nowrap transition-colors ' +
+              (ocultarMias ? 'bg-primario border-primario text-white' : 'border-borde text-zinc-300 hover:text-white')
+            }
+          >
+            <EyeOff size={14} />
+            Ocultar las mías
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-6">

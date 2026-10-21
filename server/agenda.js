@@ -128,19 +128,15 @@ export function crearAgenda(sql, materias) {
       VALUES (${estudiante.id}, ${estudiante.nombre}, ${materia}, ${tema}, ${datos.urgencia}, ${datos.fecha}, ${datos.horario}, ${companeros})
     `
 
-    // Avisa solo a quien puede atenderla: admins, y mentores o docentes que tienen asignada esta materia.
+    // Avisa solo a quien puede atenderla: mentores o docentes que tienen asignada esta materia.
+    // Admins y coordinadores no atienden solicitudes, así que no reciben este aviso.
     await sql`
       INSERT INTO notificaciones (usuario_id, texto, destino)
       SELECT u.id, ${'Nueva solicitud de ' + materia + ' (' + datos.urgencia.toLowerCase() + ').'}::text, 'mentores'
       FROM usuarios u
       WHERE u.id <> ${estudiante.id}
-        AND (
-          u.rol = 'admin'
-          OR (
-            u.rol IN ('mentor', 'docente')
-            AND EXISTS (SELECT 1 FROM mentor_materias mm WHERE mm.mentor_id = u.id AND mm.materia = ${materia})
-          )
-        )
+        AND u.rol IN ('mentor', 'docente')
+        AND EXISTS (SELECT 1 FROM mentor_materias mm WHERE mm.mentor_id = u.id AND mm.materia = ${materia})
     `
   }
 
