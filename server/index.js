@@ -48,7 +48,8 @@ function soloRoles(...roles) {
   }
 }
 
-const soloMentores = soloRoles('mentor', 'docente', 'admin')
+// Admins y coordinadores no atienden asesorías: el portal de mentores es solo para mentores y docentes.
+const soloMentores = soloRoles('mentor', 'docente')
 const soloAdmin = soloRoles('admin')
 const soloReportes = soloRoles('admin', 'coordinador')
 const soloCoordinacion = soloRoles('admin', 'coordinador')
@@ -143,7 +144,7 @@ function buscarUsuarios() {
 
 app.get('/api/datos', async (req, res) => {
   const yo = req.usuario
-  const esMentor = ['mentor', 'docente', 'admin'].includes(yo.rol)
+  const esMentor = ['mentor', 'docente'].includes(yo.rol)
   const esAdmin = yo.rol === 'admin'
 
   const esCoordinacion = esAdmin || yo.rol === 'coordinador'

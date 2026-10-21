@@ -155,7 +155,6 @@ const admin = {
       texto:
         'Administras quién usa la plataforma y con qué permisos, y ves las métricas de todos los programas.',
       puntos: [
-        'También puedes usar el banco y el portal de mentores como cualquier mentor.',
         'Hay cuatro perfiles: estudiante, mentor, docente y coordinador de programa, además del tuyo.',
       ],
     },

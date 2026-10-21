@@ -40,11 +40,11 @@ function App() {
 
   const cerrarDetalle = useCallback(() => setDetalleId(null), [])
 
-  // El coordinador entra directo a sus reportes: es lo único propio de su rol.
+  // Coordinador y admin entran directo a los reportes: no atienden asesorías.
   useEffect(() => {
     if (datos && !inicioHecho.current) {
       inicioHecho.current = true
-      if (datos.yo.rol === 'coordinador') setPagina('reportes')
+      if (['coordinador', 'admin'].includes(datos.yo.rol)) setPagina('reportes')
     }
   }, [datos])
 
@@ -264,7 +264,7 @@ function App() {
   }
 
   const { yo, asesorias, solicitudes, usuarios, notificaciones, catalogo, mentores } = datos
-  const esMentor = ['mentor', 'docente', 'admin'].includes(yo.rol)
+  const esMentor = ['mentor', 'docente'].includes(yo.rol)
   const esAdmin = yo.rol === 'admin'
   const esCoordinador = yo.rol === 'coordinador'
   const detalle = asesorias.find((asesoria) => asesoria.id === detalleId)
