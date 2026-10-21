@@ -280,8 +280,8 @@ function App() {
     contenido = (
       <BancoAsesorias
         asesorias={asesorias}
-        catalogo={catalogo}
-        carreraInicial={yo.rol === 'estudiante' ? yo.carrera || '' : ''}
+        catalogo={esCoordinador ? catalogo.filter((c) => c.nombre === yo.programa) : catalogo}
+        carreraInicial={yo.rol === 'estudiante' ? yo.carrera || '' : esCoordinador ? yo.programa || '' : ''}
         inscribir={inscribir}
         cancelar={cancelar}
         busquedaInicial={busquedaBanco}

@@ -158,10 +158,13 @@ app.get('/api/datos', async (req, res) => {
     esCoordinacion ? materias.mentoresConMaterias(yo.rol === 'coordinador' ? yo.programa || '' : null) : [],
   ])
 
+  // El coordinador solo ve las asesorías de las materias de su programa (sin programa, ninguna).
+  const delPrograma = yo.rol === 'coordinador' ? vigente.find((c) => c.nombre === yo.programa)?.materias || [] : null
+
   // materiasAsignadas: lista de materias que el mentor o docente puede atender; null = sin restricción (admin).
   res.json({
     yo: { ...yo, materiasAsignadas: asignadas },
-    asesorias,
+    asesorias: delPrograma ? asesorias.filter((a) => delPrograma.includes(a.materia)) : asesorias,
     solicitudes,
     notificaciones,
     usuarios,
