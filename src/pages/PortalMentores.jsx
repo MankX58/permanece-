@@ -23,6 +23,7 @@ import CamposSesion, { sesionVacia, sesionDe, datosDeSesion } from '../component
 import { urgencias } from '../data.js'
 import { EnLinea } from '../components/Resumen.jsx'
 import Plegable from '../components/Plegable.jsx'
+import HorariosDocente from '../components/HorariosDocente.jsx'
 import { fechaCorta, mesDe, diaDe, horasDe, promedio, hace } from '../fechas.js'
 import { lista, item, toque, desplegar } from '../animaciones.js'
 
@@ -137,6 +138,9 @@ function modalidadDe(asesoria) {
 
 function PortalMentores({
   yo,
+  horarios = [],
+  agregarHorario,
+  quitarHorario,
   asesorias,
   agregarAsesoria,
   eliminarAsesoria,
@@ -412,6 +416,16 @@ function PortalMentores({
           </div>
         )}
       </div>
+
+      {yo.rol === 'docente' && (
+        <HorariosDocente
+          horarios={horarios}
+          materias={alcance ?? []}
+          agregar={agregarHorario}
+          quitar={quitarHorario}
+          className="mt-10"
+        />
+      )}
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-x-10 gap-y-10 mt-10">
         <div className="xl:col-span-2 space-y-10">

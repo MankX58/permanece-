@@ -117,6 +117,24 @@ await sql`
   )
 `
 
+// Horarios de atención permanentes del docente: se repiten cada semana (dia 1 = lunes ... 7 = domingo).
+// materia vacía = general (todas las materias). Rigen desde `desde` y, si hay `hasta`, hasta esa fecha.
+await sql`
+  CREATE TABLE IF NOT EXISTS horarios_docente (
+    id SERIAL PRIMARY KEY,
+    docente_id TEXT NOT NULL,
+    dia INTEGER NOT NULL CHECK (dia BETWEEN 1 AND 7),
+    horario TEXT NOT NULL,
+    materia TEXT,
+    virtual BOOLEAN NOT NULL DEFAULT false,
+    lugar TEXT NOT NULL,
+    enlace TEXT,
+    desde DATE NOT NULL,
+    hasta DATE,
+    creado_en TIMESTAMPTZ NOT NULL DEFAULT now()
+  )
+`
+
 // Promedio académico que el propio estudiante registra por periodo ("2026-1" = ene-jun, "2026-2" = jul-dic).
 // Alimenta el panel de impacto del coordinador, siempre en cifras agrupadas y sin nombres.
 await sql`

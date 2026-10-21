@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'motion/react'
 import { Search, EyeOff, SlidersHorizontal } from 'lucide-react'
 import TarjetaAsesoria from '../components/TarjetaAsesoria.jsx'
 import { item, desplegar } from '../animaciones.js'
+import Plegable from '../components/Plegable.jsx'
+import { FilaHorario } from '../components/HorariosDocente.jsx'
 
 const tipos = ['Todos', 'Docente', 'Voluntario']
 
@@ -14,6 +16,7 @@ function BancoAsesorias({
   catalogo,
   carreraInicial = '',
   carreraFija = false,
+  horarios = [],
   busquedaInicial = '',
 }) {
   const [busqueda, setBusqueda] = useState(busquedaInicial)
@@ -139,6 +142,22 @@ function BancoAsesorias({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {horarios.length > 0 && (
+        <Plegable
+          titulo="Horarios de atención de docentes"
+          cantidad={horarios.length}
+          claseTitulo="text-base font-semibold"
+          abiertoInicial={false}
+          className="mt-6"
+        >
+          <ul className="bg-tarjeta rounded-2xl divide-y divide-borde">
+            {horarios.map((horario) => (
+              <FilaHorario key={horario.id} horario={horario} mostrarDocente />
+            ))}
+          </ul>
+        </Plegable>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 mt-6">
         <AnimatePresence mode="popLayout">

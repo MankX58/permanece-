@@ -3,12 +3,13 @@ import { Video } from 'lucide-react'
 import CajaClicable from '../components/CajaClicable.jsx'
 import Pendientes from '../components/Pendientes.jsx'
 import Plegable from '../components/Plegable.jsx'
+import { FilaHorario } from '../components/HorariosDocente.jsx'
 import { EnLinea } from '../components/Resumen.jsx'
 import { fechaCorta, horasDe, promedio } from '../fechas.js'
 import { toque } from '../animaciones.js'
 
 // Panel principal del docente: lo que da, lo que le piden y lo que le falta cerrar.
-function PanelMentor({ yo, asesorias, solicitudes, setPagina, abrirDetalle }) {
+function PanelMentor({ yo, asesorias, solicitudes, horarios = [], setPagina, abrirDetalle }) {
   const mias = asesorias.filter((asesoria) => asesoria.esMia)
   const proximas = mias.filter((asesoria) => !asesoria.pasada)
   const impartidas = mias.filter((asesoria) => asesoria.pasada)
@@ -140,6 +141,30 @@ function PanelMentor({ yo, asesorias, solicitudes, setPagina, abrirDetalle }) {
               </button>
             ))}
           </div>
+        )}
+      </Plegable>
+
+      <Plegable
+        titulo="Mis horarios permanentes"
+        cantidad={horarios.length}
+        claseTitulo="text-base font-semibold"
+        className="mt-8"
+        acciones={
+          <button onClick={() => setPagina('mentores')} className="text-xs text-red-400 hover:text-red-300">
+            Administrar horarios
+          </button>
+        }
+      >
+        {horarios.length === 0 ? (
+          <p className="text-sm text-zinc-400 bg-tarjeta rounded-2xl p-5">
+            Aún no tienes horarios permanentes. Agrégalos en el portal de mentores.
+          </p>
+        ) : (
+          <ul className="bg-tarjeta rounded-2xl divide-y divide-borde">
+            {horarios.map((horario) => (
+              <FilaHorario key={horario.id} horario={horario} />
+            ))}
+          </ul>
         )}
       </Plegable>
     </div>

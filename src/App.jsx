@@ -174,6 +174,15 @@ function App() {
     enviar('/asesorias/' + id + '/valoracion', 'PUT', { valoracion, comentario }, 'Valoración guardada.')
   }
 
+  // El docente publica o quita un horario de atención que se repite cada semana.
+  function agregarHorario(datos) {
+    return enviar('/horarios', 'POST', datos, 'Horario guardado.')
+  }
+
+  function quitarHorario(id) {
+    return enviar('/horarios/' + id, 'DELETE', null, 'Horario eliminado.')
+  }
+
   // El estudiante registra su promedio por periodo (opcional): alimenta el panel de impacto del coordinador.
   function guardarPromedio(periodo, promedio) {
     return enviar('/yo/promedio', 'PUT', { periodo, promedio: Number(promedio) }, 'Promedio guardado.')
@@ -274,7 +283,7 @@ function App() {
     return <Cargando error={errorCarga} />
   }
 
-  const { yo, asesorias, solicitudes, usuarios, notificaciones, promedios, catalogo, mentores } = datos
+  const { yo, asesorias, solicitudes, usuarios, notificaciones, promedios, horarios, catalogo, mentores } = datos
   const esMentor = ['mentor', 'docente'].includes(yo.rol)
   const esAdmin = yo.rol === 'admin'
   const esCoordinador = yo.rol === 'coordinador'
@@ -307,6 +316,7 @@ function App() {
         catalogo={catalogo}
         carreraInicial={yo.carrera || ''}
         carreraFija={['estudiante', 'mentor'].includes(yo.rol) && Boolean(yo.carrera)}
+        horarios={horarios}
         inscribir={inscribir}
         cancelar={cancelar}
         busquedaInicial={busquedaBanco}
@@ -335,6 +345,9 @@ function App() {
     contenido = (
       <PortalMentores
         yo={yo}
+        horarios={horarios}
+        agregarHorario={agregarHorario}
+        quitarHorario={quitarHorario}
         asesorias={asesorias}
         abrirDetalle={setDetalleId}
         agregarAsesoria={agregarAsesoria}
@@ -386,7 +399,14 @@ function App() {
     )
   } else if (esDocente) {
     contenido = (
-      <PanelMentor yo={yo} asesorias={asesorias} solicitudes={solicitudes} setPagina={irA} abrirDetalle={setDetalleId} />
+      <PanelMentor
+        yo={yo}
+        asesorias={asesorias}
+        solicitudes={solicitudes}
+        horarios={horarios}
+        setPagina={irA}
+        abrirDetalle={setDetalleId}
+      />
     )
   } else {
     contenido = (

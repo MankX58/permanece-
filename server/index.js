@@ -142,6 +142,18 @@ function buscarSolicitudes(usuario, esMentor) {
   `
 }
 
+// Horarios de atención vigentes de los docentes (los ya vencidos no se listan).
+function buscarHorarios() {
+  return sql`
+    SELECT h.id, h.docente_id AS "docenteId", u.nombre AS docente, h.dia, h.horario, h.materia, h.virtual, h.lugar, h.enlace,
+      to_char(h.desde, 'YYYY-MM-DD') AS desde, to_char(h.hasta, 'YYYY-MM-DD') AS hasta
+    FROM horarios_docente h
+    JOIN usuarios u ON u.id = h.docente_id
+    WHERE h.hasta IS NULL OR h.hasta >= CURRENT_DATE
+    ORDER BY h.dia, h.horario
+  `
+}
+
 function buscarPromedios(usuario) {
   return sql`
     SELECT periodo, promedio::float8 AS promedio
@@ -171,11 +183,12 @@ app.get('/api/datos', async (req, res) => {
 
   const esCoordinacion = esAdmin || yo.rol === 'coordinador'
 
-  const [asesorias, solicitudes, notificaciones, promedios, usuarios, vigente, asignadas, mentores] = await Promise.all([
+  const [asesorias, solicitudes, notificaciones, promedios, horarios, usuarios, vigente, asignadas, mentores] = await Promise.all([
     buscarAsesorias(yo.id),
     buscarSolicitudes(yo.id, esMentor),
     buscarNotificaciones(yo.id),
     buscarPromedios(yo.id),
+    buscarHorarios(),
     esAdmin ? buscarUsuarios() : [],
     catalogo(),
     ['mentor', 'docente'].includes(yo.rol) ? materias.asignadasA(yo.id) : null,
@@ -195,6 +208,14 @@ app.get('/api/datos', async (req, res) => {
       ? asesorias.filter((a) => deSuCarrera.includes(a.materia) || a.esMia || a.inscrita)
       : asesorias
 
+  // El docente ve sus horarios; estudiantes y mentores, los de su carrera y los generales.
+  const susHorarios =
+    yo.rol === 'docente'
+      ? horarios.filter((h) => h.docenteId === yo.id)
+      : deSuCarrera
+        ? horarios.filter((h) => h.materia === null || deSuCarrera.includes(h.materia))
+        : []
+
   // materiasAsignadas: lista de materias que el mentor o docente puede atender; null = sin restricción (admin).
   res.json({
     yo: { ...yo, materiasAsignadas: asignadas },
@@ -202,6 +223,7 @@ app.get('/api/datos', async (req, res) => {
     solicitudes,
     notificaciones,
     promedios,
+    horarios: susHorarios,
     usuarios,
     catalogo: vigente,
     mentores,
@@ -261,6 +283,53 @@ app.put('/api/usuarios/:id/carrera', soloAdmin, async (req, res) => {
 
   await sql`UPDATE usuarios SET carrera = ${carrera} WHERE id = ${req.params.id}`
   await notificar(req.params.id, 'Tu carrera quedó registrada como ' + carrera + '.')
+  res.json({ ok: true })
+})
+
+// El docente publica un horario de atención que se repite cada semana: día, hora, materia (o general), lugar
+// y desde cuándo rige (y hasta cuándo, si termina).
+app.post('/api/horarios', soloRoles('docente'), async (req, res) => {
+  const dia = Number(req.body.dia)
+  const materia = req.body.materia ? String(req.body.materia) : null
+  const hasta = req.body.hasta || null
+  const sesion = datosSesion({
+    fecha: req.body.desde,
+    horario: req.body.horario,
+    virtual: req.body.virtual,
+    lugar: req.body.lugar,
+    enlace: req.body.enlace,
+  })
+
+  if (!Number.isInteger(dia) || dia < 1 || dia > 7) {
+    return res.status(400).json({ mensaje: 'Elige el día de la semana.' })
+  }
+
+  const alcance = await materias.alcanceDe(req.usuario)
+  if (Array.isArray(alcance) && alcance.length === 0) {
+    return res.status(400).json({ mensaje: 'Aún no tienes materias asignadas. Pídele a tu coordinador que te las asigne.' })
+  }
+  if (materia && !(await materias.puedeAtender(req.usuario, materia))) {
+    return res.status(400).json({ mensaje: 'Solo puedes poner horarios de las materias que tienes asignadas.' })
+  }
+
+  const error = await errorDeSesion(sesion)
+  if (error) {
+    return res.status(400).json({ mensaje: error })
+  }
+  if (hasta && (!/^\d{4}-\d{2}-\d{2}$/.test(hasta) || hasta < sesion.fecha)) {
+    return res.status(400).json({ mensaje: 'La fecha final no puede ser anterior a la inicial.' })
+  }
+
+  await sql`
+    INSERT INTO horarios_docente (docente_id, dia, horario, materia, virtual, lugar, enlace, desde, hasta)
+    VALUES (${idUsuario(req)}, ${dia}, ${sesion.horario}, ${materia}, ${sesion.virtual}, ${sesion.lugar}, ${sesion.enlace},
+      ${sesion.fecha}, ${hasta})
+  `
+  res.json({ ok: true })
+})
+
+app.delete('/api/horarios/:id', soloRoles('docente'), async (req, res) => {
+  await sql`DELETE FROM horarios_docente WHERE id = ${req.params.id} AND docente_id = ${idUsuario(req)}`
   res.json({ ok: true })
 })
 
