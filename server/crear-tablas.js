@@ -113,6 +113,9 @@ await sql`
   )
 `
 
+// A dónde lleva la notificación al abrirla: 'asesoria:ID' (su detalle) o el nombre de una página. Null = solo informa.
+await sql`ALTER TABLE notificaciones ADD COLUMN IF NOT EXISTS destino TEXT`
+
 await sql`
   CREATE TABLE IF NOT EXISTS usuarios (
     id TEXT PRIMARY KEY,

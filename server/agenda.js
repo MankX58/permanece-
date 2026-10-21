@@ -50,9 +50,9 @@ function enBanco(solicitud) {
 }
 
 export function crearAgenda(sql, materias) {
-  async function notificar(usuario, texto) {
+  async function notificar(usuario, texto, destino = null) {
     if (usuario) {
-      await sql`INSERT INTO notificaciones (usuario_id, texto) VALUES (${usuario}, ${texto})`
+      await sql`INSERT INTO notificaciones (usuario_id, texto, destino) VALUES (${usuario}, ${texto}, ${destino})`
     }
   }
 
@@ -130,8 +130,8 @@ export function crearAgenda(sql, materias) {
 
     // Avisa solo a quien puede atenderla: admins, y mentores o docentes que tienen asignada esta materia.
     await sql`
-      INSERT INTO notificaciones (usuario_id, texto)
-      SELECT u.id, ${'Nueva solicitud de ' + materia + ' (' + datos.urgencia.toLowerCase() + ').'}::text
+      INSERT INTO notificaciones (usuario_id, texto, destino)
+      SELECT u.id, ${'Nueva solicitud de ' + materia + ' (' + datos.urgencia.toLowerCase() + ').'}::text, 'mentores'
       FROM usuarios u
       WHERE u.id <> ${estudiante.id}
         AND (
@@ -178,7 +178,7 @@ export function crearAgenda(sql, materias) {
   async function crearSesion(id, solicitud, tutor, sesion) {
     const { rol, tipo } = perfilDe(tutor.rol)
 
-    await sql`
+    const [creada] = await sql`
       WITH nueva AS (
         INSERT INTO asesorias (tutor_id, tutor, rol, tipo, materia, descripcion, fecha, horario, lugar, virtual, enlace, cupos, privada)
         VALUES (${tutor.id}, ${tutor.nombre}, ${rol}, ${tipo}, ${solicitud.materia}, ${solicitud.tema},
@@ -192,7 +192,9 @@ export function crearAgenda(sql, materias) {
       UPDATE solicitudes
       SET asesoria_id = (SELECT id FROM nueva), mentor_id = ${tutor.id}, propuesta = NULL
       WHERE id = ${id}
+      RETURNING asesoria_id AS id
     `
+    return creada.id
   }
 
   // El mentor acepta el horario que sugirió el estudiante: se agenda de una vez.
@@ -215,11 +217,12 @@ export function crearAgenda(sql, materias) {
       throw new ErrorDeAgenda('Esa solicitud ya no está disponible.')
     }
 
-    await crearSesion(id, solicitud, mentor, sesion)
+    const asesoriaId = await crearSesion(id, solicitud, mentor, sesion)
     await notificar(
       solicitud.usuario_id,
       mentor.nombre + ' aceptó tu horario y agendó la asesoría de ' + solicitud.materia + ': ' + textoSesion(sesion) + '.' +
-        enBanco(solicitud)
+        enBanco(solicitud),
+      'asesoria:' + asesoriaId
     )
   }
 
@@ -242,7 +245,8 @@ export function crearAgenda(sql, materias) {
     await notificar(
       solicitud.usuario_id,
       mentor.nombre + ' propone otro horario para tu asesoría de ' + solicitud.materia + ': ' + textoSesion(sesion) +
-        '. Confírmalo o recházalo en Mis Solicitudes.'
+        '. Confírmalo o recházalo en Mis Solicitudes.',
+      'solicitudes'
     )
   }
 
@@ -267,11 +271,12 @@ export function crearAgenda(sql, materias) {
       }
 
       const tutor = { id: solicitud.mentor_id, nombre: solicitud.mentor_nombre, rol: solicitud.mentor_rol }
-      await crearSesion(id, solicitud, tutor, sesion)
+      const asesoriaId = await crearSesion(id, solicitud, tutor, sesion)
       await notificar(
         solicitud.mentor_id,
         estudiante.nombre + ' aceptó tu propuesta: la asesoría de ' + solicitud.materia + ' quedó agendada para ' +
-          textoSesion(sesion) + '.' + enBanco(solicitud)
+          textoSesion(sesion) + '.' + enBanco(solicitud),
+        'asesoria:' + asesoriaId
       )
       return
     }
@@ -289,7 +294,8 @@ export function crearAgenda(sql, materias) {
     await notificar(
       solicitud.mentor_id,
       estudiante.nombre + ' no aceptó tu propuesta de horario para ' + solicitud.materia +
-        '. La solicitud volvió a estar disponible.'
+        '. La solicitud volvió a estar disponible.',
+      'mentores'
     )
   }
 
@@ -307,7 +313,8 @@ export function crearAgenda(sql, materias) {
     await notificar(
       solicitud.usuario_id,
       (solicitud.teniaPropuesta ? mentor.nombre + ' retiró su propuesta de horario. ' : '') +
-        'Tu solicitud de ' + solicitud.materia + ' volvió a estar disponible para los mentores.'
+        'Tu solicitud de ' + solicitud.materia + ' volvió a estar disponible para los mentores.',
+      'solicitudes'
     )
   }
 

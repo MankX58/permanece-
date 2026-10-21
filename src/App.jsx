@@ -226,7 +226,29 @@ function App() {
   }
 
   function marcarLeidas() {
-    enviar('/notificaciones/leidas', 'POST', null, 'Notificaciones marcadas como leídas.')
+    enviar('/notificaciones/leidas', 'POST', null, 'Notificaciones borradas.')
+  }
+
+  // Se quita de la lista al instante; si el servidor falla, se recarga para recuperarla.
+  async function borrarNotificacion(id) {
+    setDatos((actual) => ({ ...actual, notificaciones: actual.notificaciones.filter((n) => n.id !== id) }))
+    try {
+      await api('/notificaciones/' + id, 'DELETE')
+    } catch (e) {
+      setAviso({ texto: e.message, error: true })
+      cargar().catch(() => {})
+    }
+  }
+
+  // Abrir una notificación la borra y lleva a su detalle: una asesoría ('asesoria:ID') o una página.
+  async function abrirNotificacion(notificacion) {
+    await borrarNotificacion(notificacion.id)
+    const [tipo, id] = notificacion.destino.split(':')
+    if (tipo === 'asesoria') {
+      setDetalleId(Number(id))
+    } else {
+      irA(tipo)
+    }
   }
 
   if (isLoading) {
@@ -361,7 +383,13 @@ function App() {
           esCoordinador={esCoordinador}
         />
         <div className="flex-1 flex flex-col min-w-0">
-          <Header yo={yo} notificaciones={notificaciones} marcarLeidas={marcarLeidas} />
+          <Header
+            yo={yo}
+            notificaciones={notificaciones}
+            marcarLeidas={marcarLeidas}
+            borrar={borrarNotificacion}
+            abrir={abrirNotificacion}
+          />
           <main className="flex-1 overflow-y-auto p-6 lg:p-8">
             <AnimatePresence mode="wait">
               <motion.div

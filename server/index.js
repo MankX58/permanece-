@@ -130,7 +130,7 @@ function buscarSolicitudes(usuario, esMentor) {
 
 function buscarNotificaciones(usuario) {
   return sql`
-    SELECT id, texto
+    SELECT id, texto, destino
     FROM notificaciones
     WHERE usuario_id = ${usuario} AND leida = false
     ORDER BY id DESC
@@ -190,7 +190,7 @@ app.put('/api/usuarios/:id/rol', soloAdmin, async (req, res) => {
   await sql`UPDATE usuarios SET rol = ${rol}, programa = ${programaFinal} WHERE id = ${req.params.id}`
 
   if (rol === 'coordinador' && programaFinal) {
-    await notificar(req.params.id, 'Ahora coordinas el programa ' + programaFinal + '. Encuentras sus reportes en el menú.')
+    await notificar(req.params.id, 'Ahora coordinas el programa ' + programaFinal + '. Encuentras sus reportes en el menú.', 'reportes')
   } else if (!antes || antes.rol !== rol) {
     await notificar(req.params.id, 'Tu rol ahora es ' + rol + '.')
   }
@@ -383,15 +383,16 @@ app.post('/api/asesorias', soloMentores, async (req, res) => {
 
   const { rol, tipo } = perfilTutor(req)
 
-  await sql`
+  const [nueva] = await sql`
     INSERT INTO asesorias (tutor_id, tutor, rol, tipo, materia, descripcion, fecha, horario, lugar, virtual, enlace, cupos)
     VALUES (${idUsuario(req)}, ${req.usuario.nombre}, ${rol}, ${tipo}, ${a.materia}, ${a.descripcion}, ${sesion.fecha}, ${sesion.horario}, ${sesion.lugar}, ${sesion.virtual}, ${sesion.enlace}, ${cupos})
+    RETURNING id
   `
 
   // Quienes tenían una solicitud pendiente de esta materia se enteran de que ya hay una sesión.
   await sql`
-    INSERT INTO notificaciones (usuario_id, texto)
-    SELECT DISTINCT usuario_id, ${'Hay una nueva asesoría de ' + a.materia + ' en el banco.'}::text
+    INSERT INTO notificaciones (usuario_id, texto, destino)
+    SELECT DISTINCT usuario_id, ${'Hay una nueva asesoría de ' + a.materia + ' en el banco.'}::text, ${'asesoria:' + nueva.id}::text
     FROM solicitudes
     WHERE materia = ${a.materia} AND mentor_id IS NULL AND usuario_id IS NOT NULL AND usuario_id <> ${idUsuario(req)}
   `
@@ -438,8 +439,8 @@ app.put('/api/asesorias/:id', soloMentores, async (req, res) => {
   }
 
   await sql`
-    INSERT INTO notificaciones (usuario_id, texto)
-    SELECT usuario_id, ${aviso}::text FROM inscripciones WHERE asesoria_id = ${req.params.id}
+    INSERT INTO notificaciones (usuario_id, texto, destino)
+    SELECT usuario_id, ${aviso}::text, ${'asesoria:' + req.params.id}::text FROM inscripciones WHERE asesoria_id = ${req.params.id}
   `
   res.json({ ok: true })
 })
@@ -465,8 +466,9 @@ app.put('/api/asesorias/:id/resumen', soloMentores, async (req, res) => {
 
   if (!asesoria.resumen) {
     await sql`
-      INSERT INTO notificaciones (usuario_id, texto)
-      SELECT usuario_id, ${req.usuario.nombre + ' dejó la retroalimentación de la asesoría de ' + asesoria.materia + '. Ya puedes valorarla.'}::text
+      INSERT INTO notificaciones (usuario_id, texto, destino)
+      SELECT usuario_id, ${req.usuario.nombre + ' dejó la retroalimentación de la asesoría de ' + asesoria.materia + '. Ya puedes valorarla.'}::text,
+        ${'asesoria:' + req.params.id}::text
       FROM inscripciones WHERE asesoria_id = ${req.params.id}
     `
   }
@@ -485,8 +487,8 @@ app.delete('/api/asesorias/:id', soloMentores, async (req, res) => {
   }
 
   await sql`
-    INSERT INTO notificaciones (usuario_id, texto)
-    SELECT usuario_id, ${'Se canceló la asesoría de ' + asesoria.materia + ' a la que estabas inscrito.'}::text
+    INSERT INTO notificaciones (usuario_id, texto, destino)
+    SELECT usuario_id, ${'Se canceló la asesoría de ' + asesoria.materia + ' a la que estabas inscrito.'}::text, 'banco'
     FROM inscripciones
     WHERE asesoria_id = ${req.params.id}
   `
@@ -525,7 +527,7 @@ app.post('/api/asesorias/:id/inscripcion', async (req, res) => {
     RETURNING asesoria_id
   `
   if (nuevas.length > 0) {
-    await notificar(asesoria.tutor_id, req.usuario.nombre + ' se inscribió a tu asesoría de ' + asesoria.materia + '.')
+    await notificar(asesoria.tutor_id, req.usuario.nombre + ' se inscribió a tu asesoría de ' + asesoria.materia + '.', 'asesoria:' + req.params.id)
   }
   res.json({ ok: true })
 })
@@ -577,7 +579,7 @@ app.put('/api/asesorias/:id/valoracion', async (req, res) => {
     return res.status(400).json({ mensaje: 'Solo puedes valorar asesorías a las que ya asististe.' })
   }
 
-  await notificar(asesoria.tutor_id, 'Recibiste una reseña de ' + valoracion + ' estrellas en ' + asesoria.materia + '.')
+  await notificar(asesoria.tutor_id, 'Recibiste una reseña de ' + valoracion + ' estrellas en ' + asesoria.materia + '.', 'asesoria:' + req.params.id)
   res.json({ ok: true })
 })
 
@@ -624,7 +626,8 @@ app.delete('/api/solicitudes/:id', async (req, res) => {
         solicitud.mentor_id,
         canceladas.length > 0
           ? req.usuario.nombre + ' canceló la asesoría de ' + solicitud.materia + '.'
-          : req.usuario.nombre + ' se salió de la asesoría de ' + solicitud.materia + '. Sigue para los demás inscritos.'
+          : req.usuario.nombre + ' se salió de la asesoría de ' + solicitud.materia + '. Sigue para los demás inscritos.',
+        canceladas.length > 0 ? 'mentores' : 'asesoria:' + solicitud.asesoria_id
       )
     }
   }
@@ -668,7 +671,7 @@ app.post('/api/solicitudes/:id/atender', soloMentores, async (req, res) => {
     return res.status(400).json({ mensaje: 'Esa solicitud no está en tu lista de pendientes por atender.' })
   }
 
-  await notificar(solicitud.usuario_id, req.usuario.nombre + ' marcó como atendida tu solicitud de ' + solicitud.materia + '.')
+  await notificar(solicitud.usuario_id, req.usuario.nombre + ' marcó como atendida tu solicitud de ' + solicitud.materia + '.', 'solicitudes')
   res.json({ ok: true })
 })
 
@@ -683,7 +686,7 @@ app.post('/api/mentores/:id/materias', soloCoordinacion, async (req, res) => {
   const materia = String(req.body.materia || '')
   await conRegla(res, async () => {
     await materias.asignar(req.params.id, materia, idUsuario(req), carreraPermitida(req))
-    await notificar(req.params.id, 'Ahora atiendes ' + materia + '. Verás sus solicitudes y podrás publicar asesorías de esa materia.')
+    await notificar(req.params.id, 'Ahora atiendes ' + materia + '. Verás sus solicitudes y podrás publicar asesorías de esa materia.', 'mentores')
   })
 })
 
@@ -697,6 +700,11 @@ app.delete('/api/mentores/:id/materias', soloCoordinacion, async (req, res) => {
 
 app.post('/api/notificaciones/leidas', async (req, res) => {
   await sql`UPDATE notificaciones SET leida = true WHERE usuario_id = ${idUsuario(req)}`
+  res.json({ ok: true })
+})
+
+app.delete('/api/notificaciones/:id', async (req, res) => {
+  await sql`DELETE FROM notificaciones WHERE id = ${req.params.id} AND usuario_id = ${idUsuario(req)}`
   res.json({ ok: true })
 })
 

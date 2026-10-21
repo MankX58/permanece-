@@ -293,26 +293,58 @@ function MisSolicitudes({
                 />
               </div>
             </div>
-            <label className="block">
-              <span className="text-xs text-zinc-400">¿Con cuántos compañeros más la recibirías?</span>
-              <select
-                value={companeros}
-                onChange={(e) => setCompaneros(Number(e.target.value))}
-                className={claseCampo + ' w-full mt-1.5'}
-              >
-                <option value={0}>Solo yo (individual)</option>
-                {Array.from({ length: maxCompaneros }, (_, i) => i + 1).map((n) => (
-                  <option key={n} value={n}>
-                    Hasta {n} {n === 1 ? 'compañero' : 'compañeros'} más
-                  </option>
-                ))}
-              </select>
+            <div>
+              <p className="text-xs text-zinc-400">¿Cómo quieres recibirla?</p>
+              <div className="flex flex-wrap items-center gap-3 mt-1.5">
+                <div className="flex border border-borde rounded-lg p-1">
+                  {['Solo yo', 'Grupal'].map((opcion) => {
+                    const activa = (opcion === 'Grupal') === companeros > 0
+                    return (
+                      <button
+                        key={opcion}
+                        type="button"
+                        onClick={() => setCompaneros(opcion === 'Grupal' ? Math.max(companeros, 1) : 0)}
+                        className={
+                          'relative px-3 py-1 rounded-md text-xs font-semibold ' +
+                          (activa ? 'text-white' : 'text-zinc-300 hover:text-white')
+                        }
+                      >
+                        {activa && (
+                          <motion.span
+                            layoutId="modo-solicitud"
+                            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                            className="absolute inset-0 bg-primario rounded-md"
+                          />
+                        )}
+                        <span className="relative">{opcion}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+                {companeros > 0 && (
+                  <label className="flex items-center gap-2 text-xs text-zinc-400">
+                    Hasta
+                    <input
+                      type="number"
+                      min={1}
+                      max={maxCompaneros}
+                      value={companeros}
+                      onChange={(e) =>
+                        setCompaneros(Math.min(maxCompaneros, Math.max(1, Math.trunc(Number(e.target.value)) || 1)))
+                      }
+                      aria-label="Cantidad máxima de compañeros"
+                      className={claseCampo + ' w-16 text-center'}
+                    />
+                    compañeros más
+                  </label>
+                )}
+              </div>
               {companeros > 0 && (
-                <span className="block text-[11px] text-zinc-500 mt-1">
-                  Cuando la agenden aparecerá en el banco con {companeros} cupos para otros.
-                </span>
+                <p className="text-[11px] text-zinc-500 mt-1">
+                  Serían hasta {companeros + 1} contigo. Al agendarla aparece en el banco con {companeros} cupos libres.
+                </p>
               )}
-            </label>
+            </div>
             <motion.button
               {...toque}
               className="self-end justify-self-end bg-primario hover:bg-red-700 text-sm font-semibold px-5 py-2 rounded-lg"
