@@ -4,6 +4,7 @@ import { Download, Search, Loader } from 'lucide-react'
 import { carreras } from '../data.js'
 import { fechaDeHoy } from '../fechas.js'
 import ImpactoPanel from '../components/ImpactoPanel.jsx'
+import { ListaDatos } from '../components/Resumen.jsx'
 import { lista, item, toque } from '../animaciones.js'
 
 function fechaMenos(dias) {
@@ -26,16 +27,6 @@ function porcentaje(valor) {
 
 function decimal(valor) {
   return valor === null || valor === undefined ? '—' : valor.toFixed(1)
-}
-
-function Indicador({ etiqueta, valor, detalle }) {
-  return (
-    <motion.div variants={item} className="bg-tarjeta rounded-2xl p-5">
-      <p className="text-xs text-zinc-400">{etiqueta}</p>
-      <p className="text-3xl font-semibold mt-3">{valor}</p>
-      <p className="text-xs text-zinc-400 mt-2">{detalle}</p>
-    </motion.div>
-  )
 }
 
 function Reportes({ yo, api }) {
@@ -121,7 +112,7 @@ function Reportes({ yo, api }) {
       <ImpactoPanel api={api} programa={esCoordinador ? '' : programa} />
 
       <h2 className="text-lg font-semibold mt-10">Uso de la plataforma</h2>
-      <div className="bg-tarjeta rounded-2xl p-4 mt-4">
+      <div className="mt-4">
         <div className="flex flex-wrap items-center gap-2">
           {periodos.map((opcion) => (
             <button
@@ -201,40 +192,30 @@ function Reportes({ yo, api }) {
 
       {t && (
         <>
-          <motion.div
-            key={desde + hasta + programa}
-            variants={lista}
-            initial="oculto"
-            animate="visible"
-            className="grid grid-cols-2 lg:grid-cols-3 gap-4 mt-6"
-          >
-            <Indicador
-              etiqueta="Asesorías realizadas"
-              valor={t.realizadas}
-              detalle={t.programadas + ' programadas · ' + t.individuales + ' individuales, ' + t.grupales + ' grupales'}
+          <div className="mt-4">
+            <ListaDatos
+              datos={[
+                {
+                  etiqueta: 'Asesorías realizadas',
+                  valor: t.realizadas,
+                  detalle: t.programadas + ' programadas · ' + t.individuales + ' individuales, ' + t.grupales + ' grupales',
+                },
+                { etiqueta: 'Inscripciones', valor: t.inscritos, detalle: t.estudiantesUnicos + ' estudiantes distintos' },
+                {
+                  etiqueta: 'Asistencia',
+                  valor: porcentaje(t.tasaAsistencia),
+                  detalle: t.asistieron + ' asistieron · ' + t.noAsistieron + ' no · ' + t.sinRegistrar + ' sin registrar',
+                },
+                { etiqueta: 'Horas impartidas', valor: t.horas.toFixed(1), detalle: 'Suma de sesiones realizadas' },
+                {
+                  etiqueta: 'Valoración promedio',
+                  valor: decimal(t.valoracion) + (t.valoracion === null ? '' : ' / 5'),
+                  detalle: t.resenas + ' reseñas',
+                },
+                { etiqueta: 'Solicitudes recibidas', valor: t.solicitudes, detalle: t.aceptadas + ' aceptadas por un mentor' },
+              ]}
             />
-            <Indicador
-              etiqueta="Inscripciones"
-              valor={t.inscritos}
-              detalle={t.estudiantesUnicos + ' estudiantes distintos'}
-            />
-            <Indicador
-              etiqueta="Asistencia"
-              valor={porcentaje(t.tasaAsistencia)}
-              detalle={t.asistieron + ' asistieron · ' + t.noAsistieron + ' no · ' + t.sinRegistrar + ' sin registrar'}
-            />
-            <Indicador etiqueta="Horas impartidas" valor={t.horas.toFixed(1)} detalle="Suma de sesiones realizadas" />
-            <Indicador
-              etiqueta="Valoración promedio"
-              valor={decimal(t.valoracion) + (t.valoracion === null ? '' : ' / 5')}
-              detalle={t.resenas + ' reseñas'}
-            />
-            <Indicador
-              etiqueta="Solicitudes recibidas"
-              valor={t.solicitudes}
-              detalle={t.aceptadas + ' aceptadas por un mentor'}
-            />
-          </motion.div>
+          </div>
 
           {reporte.programas && !esCoordinador && (
             <section className="mt-10">

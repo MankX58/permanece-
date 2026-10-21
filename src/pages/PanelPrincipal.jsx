@@ -5,6 +5,7 @@ import { DonutChart } from '../components/arc/donut-chart/donut-chart'
 import FilaHistorial from '../components/FilaHistorial.jsx'
 import CajaClicable from '../components/CajaClicable.jsx'
 import MiPromedio from '../components/MiPromedio.jsx'
+import { EnLinea } from '../components/Resumen.jsx'
 import { fechaCorta, esEsteMes, promedio } from '../fechas.js'
 import { lista, item, toque } from '../animaciones.js'
 
@@ -65,81 +66,62 @@ function PanelPrincipal({ asesorias, valorar, setPagina, abrirDetalle, promedios
     <div>
       <h1 className="text-2xl font-semibold">Resumen académico</h1>
 
-      <motion.div
-        variants={lista}
-        initial="oculto"
-        animate="visible"
-        className="grid grid-cols-2 lg:grid-cols-3 gap-4 mt-6"
+      <EnLinea
+        className="mt-2"
+        datos={[
+          { valor: historial.length, etiqueta: 'asesorías (+' + esteMes.length + ' este mes)' },
+          {
+            valor: calificacion ? Number(calificacion).toFixed(1) + ' /5' : '—',
+            etiqueta: 'calificación promedio, de ' + valoradas.length + ' valoraciones tuyas',
+          },
+        ]}
+      />
+
+      <CajaClicable
+        onClick={proxima ? () => abrirDetalle(proxima.id) : undefined}
+        className="bg-tarjeta rounded-2xl p-5 mt-6 flex flex-col sm:flex-row sm:items-center gap-4"
       >
-        <motion.div variants={item} className={claseTarjeta}>
-          <p className={claseEtiqueta}>Asesorías</p>
-          <p className="text-3xl font-semibold mt-3">{historial.length}</p>
-          <p className="text-sm text-zinc-400 mt-1">+{esteMes.length} este mes</p>
-        </motion.div>
-
-        <motion.div variants={item} className={claseTarjeta}>
-          <p className={claseEtiqueta}>Calificación promedio</p>
-          <p className="text-3xl font-semibold mt-3">
-            {calificacion ? (
-              <>
-                {Number(calificacion).toFixed(1)}
-                <span className="text-lg font-normal text-zinc-400"> /5</span>
-              </>
-            ) : (
-              <span className="text-zinc-500">—</span>
-            )}
-          </p>
-          <p className="text-sm text-zinc-400 mt-1">Basado en {valoradas.length} valoraciones tuyas</p>
-        </motion.div>
-
-        <CajaClicable
-          variants={item}
-          onClick={proxima ? () => abrirDetalle(proxima.id) : undefined}
-          className={claseTarjeta + ' col-span-2 lg:col-span-1'}
-        >
+        <div className="min-w-0 flex-1">
           <p className={claseEtiqueta}>Próxima sesión</p>
-
           {proxima ? (
-            <div>
-              <p className="text-lg font-semibold mt-3">
+            <>
+              <p className="text-lg font-semibold mt-1">
                 <button onClick={() => abrirDetalle(proxima.id)} className="text-left hover:underline">
                   {proxima.materia}
                 </button>
               </p>
               <p className="text-sm text-zinc-400">
                 {fechaCorta(proxima.fecha)}, {proxima.horario} · {proxima.lugar}
+                {proxima.virtual && !proxima.enlace && ' · Aún sin enlace'}
               </p>
-              {proxima.virtual && proxima.enlace ? (
-                <motion.a
-                  {...toque}
-                  href={proxima.enlace}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-full flex items-center justify-center gap-2 bg-primario hover:bg-red-700 text-sm font-semibold py-2 rounded-lg mt-4"
-                >
-                  <Video size={16} />
-                  Entrar a la sala virtual
-                </motion.a>
-              ) : (
-                <p className="text-xs text-zinc-400 mt-3">
-                  {proxima.virtual ? 'Sesión virtual sin enlace todavía' : 'Sesión presencial'}
-                </p>
-              )}
-            </div>
+            </>
           ) : (
-            <div>
-              <p className="text-sm text-zinc-400 mt-3">Todavía no estás inscrito en ninguna asesoría.</p>
-              <motion.button
-                {...toque}
-                onClick={() => setPagina('banco')}
-                className="w-full bg-primario hover:bg-red-700 text-sm font-semibold py-2 rounded-lg mt-4"
-              >
-                Buscar asesorías
-              </motion.button>
-            </div>
+            <p className="text-sm text-zinc-400 mt-1">Todavía no estás inscrito en ninguna asesoría.</p>
           )}
-        </CajaClicable>
-      </motion.div>
+        </div>
+
+        {proxima && proxima.virtual && proxima.enlace && (
+          <motion.a
+            {...toque}
+            href={proxima.enlace}
+            target="_blank"
+            rel="noreferrer"
+            className="shrink-0 flex items-center justify-center gap-2 bg-primario hover:bg-red-700 text-sm font-semibold px-5 py-2 rounded-lg"
+          >
+            <Video size={16} />
+            Entrar a la sala virtual
+          </motion.a>
+        )}
+        {!proxima && (
+          <motion.button
+            {...toque}
+            onClick={() => setPagina('banco')}
+            className="shrink-0 bg-primario hover:bg-red-700 text-sm font-semibold px-5 py-2 rounded-lg"
+          >
+            Buscar asesorías
+          </motion.button>
+        )}
+      </CajaClicable>
 
       {promedios && <MiPromedio promedios={promedios} guardar={guardarPromedio} quitar={quitarPromedio} />}
 

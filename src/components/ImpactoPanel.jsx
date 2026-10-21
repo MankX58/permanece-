@@ -6,26 +6,6 @@ const porcentaje = (valor) => (valor === null || valor === undefined ? '—' : M
 const promedio = (valor) => (valor === null || valor === undefined ? '—' : valor.toFixed(2))
 const cambio = (valor) => (valor === null || valor === undefined ? '—' : (valor > 0 ? '+' : '') + valor.toFixed(2))
 
-// Una cifra comparada entre quienes recibieron asesorías y quienes no.
-function Comparacion({ etiqueta, atendidos, otros, detalle }) {
-  return (
-    <div className="bg-tarjeta rounded-2xl p-5">
-      <p className="text-xs text-zinc-400">{etiqueta}</p>
-      <div className="flex items-end gap-6 mt-3">
-        <div>
-          <p className="text-3xl font-semibold leading-none">{atendidos}</p>
-          <p className="text-[11px] text-zinc-300 mt-1.5">Atendidos</p>
-        </div>
-        <div>
-          <p className="text-xl font-semibold text-zinc-400 leading-none">{otros}</p>
-          <p className="text-[11px] text-zinc-400 mt-1.5">No atendidos</p>
-        </div>
-      </div>
-      <p className="text-xs text-zinc-400 mt-3">{detalle}</p>
-    </div>
-  )
-}
-
 function lectura(d) {
   const { atendidos: a, noAtendidos: n } = d
   if (a.cambio === null || n.cambio === null) return null
@@ -117,35 +97,37 @@ function ImpactoPanel({ api, programa }) {
 
       {datos && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mt-4">
-            <Comparacion
-              etiqueta="Promedio"
-              atendidos={promedio(a.promedio)}
-              otros={promedio(n.promedio)}
-              detalle={'Periodo ' + datos.periodo + ' · ' + a.conPromedio + ' y ' + n.conPromedio + ' con promedio registrado'}
-            />
-            <Comparacion
-              etiqueta="Cambio del promedio"
-              atendidos={cambio(a.cambio)}
-              otros={cambio(n.cambio)}
-              detalle={'Frente a ' + datos.anterior + ' · ' + a.conCambio + ' y ' + n.conCambio + ' comparables'}
-            />
-            <Comparacion
-              etiqueta="En riesgo de deserción"
-              atendidos={porcentaje(a.pctEnRiesgo)}
-              otros={porcentaje(n.pctEnRiesgo)}
-              detalle={'Con promedio menor a ' + datos.umbral.toFixed(1)}
-            />
-            <Comparacion
-              etiqueta="Salieron del riesgo"
-              atendidos={porcentaje(a.pctSalieron)}
-              otros={porcentaje(n.pctSalieron)}
-              detalle="De quienes estaban en riesgo el periodo anterior"
-            />
+          <div className="bg-tarjeta rounded-2xl mt-4 overflow-x-auto">
+            <table className="w-full min-w-[420px] text-left">
+              <thead className="text-xs text-zinc-400 border-b border-borde">
+                <tr>
+                  <th className="py-3 pl-5 pr-3 font-semibold">Indicador</th>
+                  <th className="py-3 px-3 font-semibold text-right w-28">Atendidos</th>
+                  <th className="py-3 pl-3 pr-5 font-semibold text-right w-28">No atendidos</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  ['Promedio', 'Periodo ' + datos.periodo + ' · ' + a.conPromedio + ' y ' + n.conPromedio + ' con promedio registrado', promedio(a.promedio), promedio(n.promedio)],
+                  ['Cambio del promedio', 'Frente a ' + datos.anterior + ' · ' + a.conCambio + ' y ' + n.conCambio + ' comparables', cambio(a.cambio), cambio(n.cambio)],
+                  ['En riesgo de deserción', 'Con promedio menor a ' + datos.umbral.toFixed(1), porcentaje(a.pctEnRiesgo), porcentaje(n.pctEnRiesgo)],
+                  ['Salieron del riesgo', 'De quienes estaban en riesgo el periodo anterior', porcentaje(a.pctSalieron), porcentaje(n.pctSalieron)],
+                ].map(([nombre, detalle, conAsesoria, sinAsesoria]) => (
+                  <tr key={nombre} className="border-b border-borde last:border-0">
+                    <td className="py-3 pl-5 pr-3">
+                      <p className="text-sm">{nombre}</p>
+                      <p className="text-xs text-zinc-400 mt-0.5">{detalle}</p>
+                    </td>
+                    <td className="py-3 px-3 text-right text-lg font-semibold tabular-nums">{conAsesoria}</td>
+                    <td className="py-3 pl-3 pr-5 text-right text-lg tabular-nums text-zinc-400">{sinAsesoria}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
 
           {lectura(datos) ? (
-            <div className="bg-tarjeta rounded-2xl p-4 mt-4">
+            <div className="mt-4">
               <p className="text-sm text-zinc-300">{lectura(datos)}</p>
               <p className="text-xs text-zinc-400 mt-2">
                 {total.estudiantes} estudiantes en {datos.programa || 'todos los programas'}: {a.estudiantes} atendidos en el

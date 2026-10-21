@@ -21,6 +21,7 @@ import SelectorMateria from '../components/SelectorMateria.jsx'
 import CajaClicable from '../components/CajaClicable.jsx'
 import CamposSesion, { sesionVacia, sesionDe, datosDeSesion } from '../components/CamposSesion.jsx'
 import { urgencias } from '../data.js'
+import { EnLinea } from '../components/Resumen.jsx'
 import { fechaCorta, mesDe, diaDe, horasDe, promedio, hace } from '../fechas.js'
 import { lista, item, toque, desplegar } from '../animaciones.js'
 
@@ -386,44 +387,30 @@ function PortalMentores({
         )}
       </AnimatePresence>
 
-      <motion.div
-        variants={lista}
-        initial="oculto"
-        animate="visible"
-        className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6"
-      >
-        <motion.div variants={item} className={claseTarjeta}>
-          <p className={claseEtiqueta}>Estudiantes ayudados</p>
-          <p className="text-3xl font-semibold mt-3">{estudiantes}</p>
-        </motion.div>
-
-        <motion.div variants={item} className={claseTarjeta}>
-          <p className={claseEtiqueta}>Horas impartidas</p>
-          <p className="text-3xl font-semibold mt-3">{horas.toFixed(1)}</p>
-        </motion.div>
-
-        <motion.div variants={item} className={claseTarjeta + ' col-span-2'}>
-          {tendencia.length > 1 ? (
+      <div className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-3">
+        <EnLinea
+          datos={[
+            { valor: estudiantes, etiqueta: 'estudiantes ayudados' },
+            { valor: horas.toFixed(1), etiqueta: 'horas impartidas' },
+            ...(tendencia.length > 1
+              ? []
+              : [{ valor: calificacion ? calificacion + ' /5' : '—', etiqueta: 'calificación promedio' }]),
+          ]}
+        />
+        {tendencia.length > 1 && (
+          <div className="w-64 max-w-full">
             <Sparkline
               label="Calificación promedio"
               data={tendencia}
               labels={valoradas.map((sesion) => fechaCorta(sesion.fecha))}
               value={calificacion + ' / 5'}
               change={todasLasValoraciones.length + ' reseñas'}
-              height={64}
-              width={320}
+              height={36}
+              width={256}
             />
-          ) : (
-            <div>
-              <p className={claseEtiqueta}>Calificación promedio</p>
-              <p className="text-3xl font-semibold mt-3">
-                {calificacion || '—'}
-                <span className="text-base font-normal text-zinc-400"> / 5</span>
-              </p>
-            </div>
-          )}
-        </motion.div>
-      </motion.div>
+          </div>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-x-10 gap-y-10 mt-10">
         <div className="xl:col-span-2 space-y-10">
