@@ -41,25 +41,25 @@ function ElegirCarrera({ nombre, carreras, elegir }) {
           <div className="bg-primario rounded-lg p-2 w-fit">
             <GraduationCap size={20} />
           </div>
-          <h2 className="text-xl font-bold mt-4">
+          <h2 className="text-xl font-semibold mt-4">
             ¿De qué carrera eres{nombre ? ', ' + nombre.split(' ')[0] : ''}?
           </h2>
           <p className="text-sm text-zinc-400 mt-1">Así te mostramos las materias de tu programa.</p>
 
           <div className="flex items-center gap-2 border border-borde rounded-lg px-3 mt-4 focus-within:border-acento transition-colors">
-            <Search size={15} className="text-zinc-500" />
+            <Search size={15} className="text-zinc-400" />
             <input
               autoFocus
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               placeholder="Buscar carrera..."
-              className="w-full bg-transparent py-2 text-sm outline-none placeholder:text-zinc-500"
+              className="w-full bg-transparent py-2 text-sm outline-none placeholder:text-zinc-400"
             />
           </div>
         </div>
 
         <div className="max-h-72 overflow-y-auto px-3 pb-2 [color-scheme:dark]">
-          {visibles.length === 0 && <p className="text-sm text-zinc-500 px-3 py-3">Sin resultados.</p>}
+          {visibles.length === 0 && <p className="text-sm text-zinc-400 px-3 py-3">Sin resultados.</p>}
           {visibles.map((carrera, posicion) => {
             const activa = elegida === carrera.nombre
             return (

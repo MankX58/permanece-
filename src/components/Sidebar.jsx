@@ -20,29 +20,27 @@ function Enlace({ id, texto, icono: Icono, pagina, setPagina }) {
   return (
     <motion.button
       onClick={() => setPagina(id)}
-      whileHover="encima"
-      whileTap={{ scale: 0.97 }}
       className={
-        'relative w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-left ' +
-        (activo ? 'text-white' : 'text-zinc-400 hover:text-white')
+        'relative w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-left transition-colors ' +
+        (activo ? 'text-white font-medium' : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]')
       }
     >
       {activo && (
         <motion.span
           layoutId="enlace-activo"
-          transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-          className="absolute inset-0 bg-primario rounded-lg"
+          transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          className="absolute inset-0 bg-white/[0.07] rounded-lg"
         />
       )}
-      <motion.span variants={{ encima: { rotate: -12, scale: 1.15 } }} className="relative">
-        <Icono size={18} />
-      </motion.span>
+      <span className={'relative ' + (activo ? 'text-acento' : '')}>
+        <Icono size={17} />
+      </span>
       <span className="relative">{texto}</span>
     </motion.button>
   )
 }
 
-function Sidebar({ pagina, setPagina, esMentor, esAdmin, esCoordinador }) {
+function Sidebar({ abierto, pagina, setPagina, esMentor, esAdmin, esCoordinador }) {
   // Cada grupo corresponde a un rol; cada persona ve solo los grupos que le tocan.
   // Admin y coordinador no ven el grupo de estudiante: no piden asesorías.
   const grupos = []
@@ -50,9 +48,9 @@ function Sidebar({ pagina, setPagina, esMentor, esAdmin, esCoordinador }) {
     grupos.push({
       titulo: 'Estudiante',
       enlaces: [
-        { id: 'panel', texto: 'Panel Principal', icono: LayoutGrid },
-        { id: 'banco', texto: 'Banco de Asesorías', icono: BookOpen },
-        { id: 'solicitudes', texto: 'Mis Solicitudes', icono: ClipboardList },
+        { id: 'panel', texto: 'Panel principal', icono: LayoutGrid },
+        { id: 'banco', texto: 'Banco de asesorías', icono: BookOpen },
+        { id: 'solicitudes', texto: 'Mis solicitudes', icono: ClipboardList },
         { id: 'calendario', texto: 'Calendario', icono: CalendarDays },
       ],
     })
@@ -61,7 +59,7 @@ function Sidebar({ pagina, setPagina, esMentor, esAdmin, esCoordinador }) {
   if (esMentor) {
     grupos.push({
       titulo: 'Mentor',
-      enlaces: [{ id: 'mentores', texto: 'Portal de Mentores', icono: Users }],
+      enlaces: [{ id: 'mentores', texto: 'Portal de mentores', icono: Users }],
     })
   }
   if (esAdmin || esCoordinador) {
@@ -77,7 +75,7 @@ function Sidebar({ pagina, setPagina, esMentor, esAdmin, esCoordinador }) {
   if (esAdmin) {
     grupos.push({
       titulo: 'Administrador',
-      enlaces: [{ id: 'usuarios', texto: 'Usuarios y Roles', icono: ShieldCheck }],
+      enlaces: [{ id: 'usuarios', texto: 'Usuarios y roles', icono: ShieldCheck }],
     })
   }
 
@@ -85,7 +83,13 @@ function Sidebar({ pagina, setPagina, esMentor, esAdmin, esCoordinador }) {
   const conTitulos = grupos.length > 1
 
   return (
-    <aside className="w-60 shrink-0 border-r border-borde flex flex-col">
+    <aside
+      className={
+        'fixed inset-y-0 left-0 z-40 w-60 bg-fondo border-r border-borde flex flex-col transition-transform duration-200 ' +
+        'lg:static lg:z-auto lg:shrink-0 lg:translate-x-0 ' +
+        (abierto ? 'translate-x-0' : '-translate-x-full')
+      }
+    >
       <div className="flex items-center gap-2.5 px-6 h-16">
         <motion.div
           initial={{ scale: 0, rotate: -90 }}
@@ -95,7 +99,7 @@ function Sidebar({ pagina, setPagina, esMentor, esAdmin, esCoordinador }) {
         >
           <GraduationCap size={18} />
         </motion.div>
-        <span className="text-lg font-bold text-acento">PERMANECE+</span>
+        <span className="text-base font-semibold">Permanece+</span>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-3">
@@ -105,9 +109,7 @@ function Sidebar({ pagina, setPagina, esMentor, esAdmin, esCoordinador }) {
             className={'space-y-1 ' + (posicion > 0 ? 'mt-4 pt-4 border-t border-borde' : '')}
           >
             {conTitulos && (
-              <p className="px-4 pb-1 text-[10px] font-bold tracking-wider text-zinc-500">
-                {grupo.titulo.toUpperCase()}
-              </p>
+              <p className="px-3 pb-1 text-xs text-zinc-500">{grupo.titulo}</p>
             )}
             {grupo.enlaces.map((enlace) => (
               <Enlace key={enlace.id} {...enlace} pagina={pagina} setPagina={setPagina} />
@@ -118,7 +120,7 @@ function Sidebar({ pagina, setPagina, esMentor, esAdmin, esCoordinador }) {
 
       <div className="border-t border-borde p-3 space-y-1">
         <Enlace id="privacidad" texto="Política de privacidad" icono={Lock} pagina={pagina} setPagina={setPagina} />
-        <Enlace id="ayuda" texto="Centro de Ayuda" icono={CircleHelp} pagina={pagina} setPagina={setPagina} />
+        <Enlace id="ayuda" texto="Centro de ayuda" icono={CircleHelp} pagina={pagina} setPagina={setPagina} />
       </div>
     </aside>
   )

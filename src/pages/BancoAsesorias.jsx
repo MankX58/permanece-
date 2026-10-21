@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { Search, EyeOff } from 'lucide-react'
+import { Search, EyeOff, SlidersHorizontal } from 'lucide-react'
 import TarjetaAsesoria from '../components/TarjetaAsesoria.jsx'
-import { item } from '../animaciones.js'
+import { item, desplegar } from '../animaciones.js'
 
 const tipos = ['Todos', 'Docente', 'Voluntario']
 
@@ -15,6 +15,7 @@ function BancoAsesorias({ asesorias, inscribir, cancelar, abrirDetalle, catalogo
   const [modalidad, setModalidad] = useState('')
   // El mentor o docente puede ocultar las que publicó él para ver solo a las que se puede inscribir.
   const [ocultarMias, setOcultarMias] = useState(false)
+  const [masFiltros, setMasFiltros] = useState(false)
   const tieneMias = asesorias.some((asesoria) => asesoria.esMia && !asesoria.pasada)
 
   const tutores = []
@@ -36,21 +37,23 @@ function BancoAsesorias({ asesorias, inscribir, cancelar, abrirDetalle, catalogo
     return true
   })
 
-  const claseSelect = 'bg-tarjeta border border-borde rounded-lg px-3 py-2 text-sm'
+  const claseSelect = 'bg-tarjeta rounded-lg px-3 py-2 text-sm'
+  // Los filtros secundarios van plegados; el número avisa cuántos están puestos.
+  const filtrosActivos = [modalidad !== '', tutor !== '', tipo !== 'Todos', ocultarMias].filter(Boolean).length
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">Banco de Asesorías</h1>
+      <h1 className="text-2xl font-semibold">Banco de asesorías</h1>
 
-      <div className="flex flex-col xl:flex-row gap-3 bg-tarjeta border border-borde rounded-xl p-2.5 mt-6">
-        <div className="flex-1 flex items-center gap-2.5 border border-borde rounded-lg px-3 focus-within:border-acento transition-colors">
+      <div className="flex flex-wrap items-center gap-3 mt-6">
+        <div className="flex-1 min-w-56 flex items-center gap-2.5 bg-tarjeta rounded-lg px-3 focus-within:outline focus-within:outline-2 focus-within:outline-acento/60 transition-colors">
           <Search size={16} className="text-zinc-400" />
           <input
             type="text"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             placeholder="Buscar por materia, tema o docente..."
-            className="w-full bg-transparent py-2 text-sm outline-none placeholder:text-zinc-500"
+            className="w-full bg-transparent py-2 text-sm outline-none placeholder:text-zinc-400"
           />
         </div>
 
@@ -61,55 +64,69 @@ function BancoAsesorias({ asesorias, inscribir, cancelar, abrirDetalle, catalogo
           ))}
         </select>
 
-        <select value={modalidad} onChange={(e) => setModalidad(e.target.value)} className={claseSelect}>
-          <option value="">Modalidad</option>
-          <option>Presencial</option>
-          <option>Virtual</option>
-        </select>
-
-        <select value={tutor} onChange={(e) => setTutor(e.target.value)} className={claseSelect}>
-          <option value="">Profesor / Mentor</option>
-          {tutores.map((opcion) => (
-            <option key={opcion}>{opcion}</option>
-          ))}
-        </select>
-
-        <div className="flex border border-borde rounded-lg p-1">
-          {tipos.map((opcion) => (
-            <button
-              key={opcion}
-              onClick={() => setTipo(opcion)}
-              className={
-                'relative flex-1 px-3 py-1 rounded-md text-xs font-semibold ' +
-                (tipo === opcion ? 'text-white' : 'text-zinc-300 hover:text-white')
-              }
-            >
-              {tipo === opcion && (
-                <motion.span
-                  layoutId="tipo-activo"
-                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                  className="absolute inset-0 bg-primario rounded-md"
-                />
-              )}
-              <span className="relative">{opcion}</span>
-            </button>
-          ))}
-        </div>
-
-        {tieneMias && (
-          <button
-            onClick={() => setOcultarMias(!ocultarMias)}
-            aria-pressed={ocultarMias}
-            className={
-              'flex items-center justify-center gap-1.5 border rounded-lg px-3 py-2 text-xs font-semibold whitespace-nowrap transition-colors ' +
-              (ocultarMias ? 'bg-primario border-primario text-white' : 'border-borde text-zinc-300 hover:text-white')
-            }
-          >
-            <EyeOff size={14} />
-            Ocultar las mías
-          </button>
-        )}
+        <button
+          onClick={() => setMasFiltros(!masFiltros)}
+          aria-expanded={masFiltros}
+          className={
+            'flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ' +
+            (masFiltros || filtrosActivos > 0 ? 'bg-zinc-800 text-white' : 'bg-tarjeta text-zinc-400 hover:text-white')
+          }
+        >
+          <SlidersHorizontal size={15} />
+          Filtros
+          {filtrosActivos > 0 && <span className="text-xs bg-primario rounded-full px-1.5">{filtrosActivos}</span>}
+        </button>
       </div>
+
+      <AnimatePresence initial={false}>
+        {masFiltros && (
+          <motion.div {...desplegar} className="overflow-hidden">
+            <div className="flex flex-wrap items-center gap-3 pt-3">
+              <select value={modalidad} onChange={(e) => setModalidad(e.target.value)} className={claseSelect}>
+                <option value="">Cualquier modalidad</option>
+                <option>Presencial</option>
+                <option>Virtual</option>
+              </select>
+
+              <select value={tutor} onChange={(e) => setTutor(e.target.value)} className={claseSelect}>
+                <option value="">Cualquier profesor o mentor</option>
+                {tutores.map((opcion) => (
+                  <option key={opcion}>{opcion}</option>
+                ))}
+              </select>
+
+              <div className="flex bg-tarjeta rounded-lg p-1">
+                {tipos.map((opcion) => (
+                  <button
+                    key={opcion}
+                    onClick={() => setTipo(opcion)}
+                    className={
+                      'px-3 py-1 rounded-md text-xs transition-colors ' +
+                      (tipo === opcion ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-white')
+                    }
+                  >
+                    {opcion}
+                  </button>
+                ))}
+              </div>
+
+              {tieneMias && (
+                <button
+                  onClick={() => setOcultarMias(!ocultarMias)}
+                  aria-pressed={ocultarMias}
+                  className={
+                    'flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs transition-colors ' +
+                    (ocultarMias ? 'bg-zinc-700 text-white' : 'bg-tarjeta text-zinc-400 hover:text-white')
+                  }
+                >
+                  <EyeOff size={14} />
+                  Ocultar las mías
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-6">
         <AnimatePresence mode="popLayout">
@@ -138,7 +155,7 @@ function BancoAsesorias({ asesorias, inscribir, cancelar, abrirDetalle, catalogo
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-center text-sm text-zinc-500 mt-12"
+          className="text-center text-sm text-zinc-400 mt-12"
         >
           No se encontraron asesorías.
         </motion.p>

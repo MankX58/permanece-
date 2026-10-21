@@ -39,7 +39,7 @@ function Carreras({ nombres, todas = false }) {
           {corto(nombre)}
         </span>
       ))}
-      {resto > 0 && <span className="text-[11px] text-zinc-500 px-1 py-0.5">+{resto}</span>}
+      {resto > 0 && <span className="text-[11px] text-zinc-400 px-1 py-0.5">+{resto}</span>}
     </span>
   )
 }
@@ -146,7 +146,7 @@ function Materias({ yo, api, catalogo, agregarMateria, quitarMateria, renombrarM
 
   const encabezado = (
     <>
-      <h1 className="text-2xl font-bold">Materias</h1>
+      <h1 className="text-2xl font-semibold">Materias</h1>
 
       {!esCoordinador && (
         <select value={elegida} onChange={(e) => setElegida(e.target.value)} className={claseCampo + ' mt-6'}>
@@ -167,7 +167,7 @@ function Materias({ yo, api, catalogo, agregarMateria, quitarMateria, renombrarM
         value={busqueda}
         onChange={(e) => setBusqueda(e.target.value)}
         placeholder="Buscar materia..."
-        className="w-full bg-transparent py-2 text-sm outline-none placeholder:text-zinc-500"
+        className="w-full bg-transparent py-2 text-sm outline-none placeholder:text-zinc-400"
       />
     </div>
   )
@@ -188,16 +188,16 @@ function Materias({ yo, api, catalogo, agregarMateria, quitarMateria, renombrarM
         {encabezado}
 
         <p className="text-sm text-zinc-400 mt-6 flex items-center gap-2">
-          <Layers size={16} className="text-acento" />
+          <Layers size={16} className="text-zinc-400" />
           {total} materias se ven en dos o más carreras. Cuentan en los reportes de cada una.
         </p>
         <div className="flex mt-4">{buscador}</div>
 
-        {ordenados.length === 0 && <p className="text-sm text-zinc-500 mt-6">No hay materias comunes con ese nombre.</p>}
+        {ordenados.length === 0 && <p className="text-sm text-zinc-400 mt-6">No hay materias comunes con ese nombre.</p>}
 
         {ordenados.map(([cuantas, materias]) => (
           <section key={cuantas} className="mt-8">
-            <h2 className="text-xs font-bold tracking-wider text-zinc-500 mb-3">
+            <h2 className="text-xs font-semibold tracking-wider text-zinc-400 mb-3">
               EN {cuantas} CARRERAS · {materias.length}
             </h2>
             <div className="space-y-2">
@@ -207,7 +207,7 @@ function Materias({ yo, api, catalogo, agregarMateria, quitarMateria, renombrarM
                   const nombres = carrerasDe.get(materia)
                   const clave = COMUNES + materia
                   return (
-                    <div key={materia} className="bg-tarjeta border border-borde rounded-xl p-4">
+                    <div key={materia} className="bg-tarjeta rounded-xl p-4">
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0">
                           <p className="text-sm font-semibold">{materia}</p>
@@ -218,7 +218,7 @@ function Materias({ yo, api, catalogo, agregarMateria, quitarMateria, renombrarM
                         <button
                           onClick={() => setEditando(editando === clave ? null : clave)}
                           title="Renombrar en todas las carreras"
-                          className="shrink-0 p-1.5 rounded-md text-zinc-500 hover:text-white hover:bg-zinc-800"
+                          className="shrink-0 p-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800"
                         >
                           <Pencil size={15} />
                         </button>
@@ -325,35 +325,35 @@ function Materias({ yo, api, catalogo, agregarMateria, quitarMateria, renombrarM
         initial="oculto"
         animate="visible"
         exit="salida"
-        className="bg-tarjeta border border-borde rounded-xl px-4 py-3"
+        className="bg-tarjeta rounded-xl px-4 py-3"
       >
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <p className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-semibold">{materia}</span>
               {agregada && (
-                <span className="text-[10px] font-bold tracking-wide text-acento border border-primario/40 bg-primario/10 rounded-full px-2 py-0.5">
+                <span className="text-[10px] font-semibold tracking-wide text-acento border border-primario/40 bg-primario/10 rounded-full px-2 py-0.5">
                   AGREGADA
                 </span>
               )}
             </p>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-1.5">
               {otras.length > 0 && <Carreras nombres={otras} />}
-              <span className="text-xs text-zinc-500">{textoUso(uso[materia])}</span>
+              <span className="text-xs text-zinc-400">{textoUso(uso[materia])}</span>
             </div>
           </div>
           <div className="shrink-0 flex items-center gap-1">
             <button
               onClick={() => setEditando(editando === clave ? null : clave)}
               title="Renombrar"
-              className="p-1.5 rounded-md text-zinc-500 hover:text-white hover:bg-zinc-800"
+              className="p-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800"
             >
               <Pencil size={15} />
             </button>
             <button
               onClick={() => quitar(materia)}
               title="Quitar de la carrera"
-              className="p-1.5 rounded-md text-zinc-500 hover:text-acento hover:bg-zinc-800"
+              className="p-1.5 rounded-md text-zinc-400 hover:text-acento hover:bg-zinc-800"
             >
               <Trash2 size={15} />
             </button>
@@ -384,10 +384,10 @@ function Materias({ yo, api, catalogo, agregarMateria, quitarMateria, renombrarM
 
     return (
       <section className="mt-8">
-        <h2 className="text-xs font-bold tracking-wider text-zinc-500">
-          {titulo.toUpperCase()} · {visibles.length}
+        <h2 className="text-xs font-semibold tracking-wider text-zinc-400">
+          {titulo} · {visibles.length}
         </h2>
-        {descripcion && <p className="text-xs text-zinc-500 mt-1">{descripcion}</p>}
+        {descripcion && <p className="text-xs text-zinc-400 mt-1">{descripcion}</p>}
         <div className="space-y-2 mt-3">
           <AnimatePresence mode="popLayout" initial={false}>
             {visibles.map(fila)}
@@ -404,7 +404,7 @@ function Materias({ yo, api, catalogo, agregarMateria, quitarMateria, renombrarM
     <div className="max-w-4xl">
       {encabezado}
 
-      <div className="bg-tarjeta border border-borde rounded-2xl p-4 mt-6">
+      <div className="bg-tarjeta rounded-2xl p-4 mt-6">
         <p className="text-sm font-semibold">Agregar materia a {carrera.nombre}</p>
         <form onSubmit={alEnviar} className="mt-3">
           <input
@@ -427,9 +427,9 @@ function Materias({ yo, api, catalogo, agregarMateria, quitarMateria, renombrarM
               >
                 <span className="min-w-0">
                   <span className="block text-sm">{quitadaQueCoincide}</span>
-                  <span className="block text-[11px] text-zinc-500">Del plan oficial, quitada de esta carrera</span>
+                  <span className="block text-[11px] text-zinc-400">Del plan oficial, quitada de esta carrera</span>
                 </span>
-                <RotateCcw size={16} className="shrink-0 text-zinc-500 group-hover:text-acento" />
+                <RotateCcw size={16} className="shrink-0 text-zinc-400 group-hover:text-acento" />
               </button>
             )}
             {sugerencias.map((materia) => (
@@ -441,16 +441,16 @@ function Materias({ yo, api, catalogo, agregarMateria, quitarMateria, renombrarM
               >
                 <span className="min-w-0">
                   <span className="block text-sm">{materia}</span>
-                  <span className="block truncate text-[11px] text-zinc-500">
+                  <span className="block truncate text-[11px] text-zinc-400">
                     En {(carrerasDe.get(materia) || []).map(corto).join(' · ')}
                   </span>
                 </span>
-                <Plus size={16} className="shrink-0 text-zinc-500 group-hover:text-acento" />
+                <Plus size={16} className="shrink-0 text-zinc-400 group-hover:text-acento" />
               </button>
             ))}
 
             {yaEsta ? (
-              <p className="py-2 text-xs text-zinc-500">Esa materia ya está en {carrera.nombre}.</p>
+              <p className="py-2 text-xs text-zinc-400">Esa materia ya está en {carrera.nombre}.</p>
             ) : (
               !existe &&
               textoNuevo.length >= 3 && (
@@ -476,10 +476,10 @@ function Materias({ yo, api, catalogo, agregarMateria, quitarMateria, renombrarM
               key={opcion.id}
               onClick={() => setFiltro(opcion.id)}
               className={
-                'text-xs font-bold px-3.5 py-1.5 rounded-full border transition-colors ' +
+                'text-xs font-semibold px-3.5 py-1.5 rounded-full border transition-colors ' +
                 (filtro === opcion.id
-                  ? 'bg-acento border-acento text-white'
-                  : 'bg-tarjeta border-borde text-zinc-400 hover:text-white')
+                  ? 'bg-zinc-700 border-zinc-700 text-white'
+                  : 'bg-tarjeta border-transparent text-zinc-400 hover:text-white')
               }
             >
               {opcion.texto} <span className="opacity-70">{opcion.lista.length}</span>
@@ -488,7 +488,7 @@ function Materias({ yo, api, catalogo, agregarMateria, quitarMateria, renombrarM
         </div>
       </div>
 
-      {sinResultados && <p className="text-sm text-zinc-500 mt-6">No hay materias con ese criterio.</p>}
+      {sinResultados && <p className="text-sm text-zinc-400 mt-6">No hay materias con ese criterio.</p>}
 
       {filtro === 'todas' ? (
         <>
@@ -503,7 +503,7 @@ function Materias({ yo, api, catalogo, agregarMateria, quitarMateria, renombrarM
         <section className="mt-10 border-t border-borde pt-6">
           <button
             onClick={() => setVerQuitadas(!verQuitadas)}
-            className="flex items-center gap-2 text-xs font-bold tracking-wider text-zinc-500 hover:text-white"
+            className="flex items-center gap-2 text-xs font-semibold tracking-wider text-zinc-400 hover:text-white"
           >
             QUITADAS DEL PLAN OFICIAL · {carrera.quitadas.length}
             <motion.span animate={{ rotate: verQuitadas ? 180 : 0 }} className="flex">
@@ -521,7 +521,7 @@ function Materias({ yo, api, catalogo, agregarMateria, quitarMateria, renombrarM
                     >
                       <div className="min-w-0">
                         <p className="text-sm text-zinc-400 line-through decoration-zinc-600">{materia}</p>
-                        <p className="text-xs text-zinc-500 mt-0.5">{textoUso(uso[materia])}</p>
+                        <p className="text-xs text-zinc-400 mt-0.5">{textoUso(uso[materia])}</p>
                       </div>
                       <button
                         onClick={() => agregarMateria(carrera.nombre, materia)}

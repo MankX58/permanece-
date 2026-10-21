@@ -28,7 +28,7 @@ function FilaHistorial({ asesoria, valorar, abrirDetalle }) {
         <p>{asesoria.descripcion}</p>
         {asesoria.resumen && (
           <p className="mt-2 text-zinc-300">
-            <span className="text-zinc-500">Retroalimentación del mentor: </span>
+            <span className="text-zinc-400">Retroalimentación del mentor: </span>
             {asesoria.resumen}
           </p>
         )}

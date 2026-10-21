@@ -9,7 +9,7 @@ export function diaDe(fecha) {
 }
 
 export function fechaCorta(fecha) {
-  return diaDe(fecha) + ' ' + mesDe(fecha)
+  return diaDe(fecha) + ' ' + mesDe(fecha).toLowerCase()
 }
 
 export function fechaDeHoy() {

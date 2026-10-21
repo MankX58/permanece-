@@ -17,7 +17,7 @@ function Estrellas({ cantidad, alCambiar }) {
         >
           <Star
             size={16}
-            className={n <= cantidad ? 'text-acento fill-acento' : 'text-zinc-600 fill-zinc-600'}
+            className={n <= cantidad ? 'text-acento fill-acento' : 'text-zinc-500 fill-zinc-600'}
           />
         </motion.span>
       ))}

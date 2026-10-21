@@ -15,7 +15,6 @@ import {
   MapPin,
   Star,
 } from 'lucide-react'
-import { AnimatedCounter } from '../components/arc/animated-counter/animated-counter'
 import { Sparkline } from '../components/arc/sparkline/sparkline'
 import Estrellas from '../components/Estrellas.jsx'
 import SelectorMateria from '../components/SelectorMateria.jsx'
@@ -28,11 +27,11 @@ import { lista, item, toque, desplegar } from '../animaciones.js'
 const formularioVacio = { ...sesionVacia, materia: '', descripcion: '', cupos: 10 }
 
 const LIMITE_HISTORIAL = 6
-const claseDato = 'flex items-center gap-1.5 text-xs text-zinc-300 bg-fondo border border-borde rounded-lg px-2.5 py-1.5'
-const insignia = 'text-[10px] font-bold tracking-wide px-2.5 py-1 rounded-md border bg-zinc-800 text-zinc-300 border-zinc-700 '
+const claseDato = 'flex items-center gap-1.5 text-xs text-zinc-400'
+const insignia = 'text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 '
 const claseAccion = 'text-xs font-medium text-zinc-400 hover:text-white transition-colors'
 const claseCampo = 'bg-fondo border border-borde rounded-lg px-3 py-2 text-sm outline-none focus:border-acento transition-colors'
-const claseCaja = 'bg-tarjeta border border-borde rounded-xl p-4 grid md:grid-cols-2 gap-3'
+const claseCaja = 'bg-tarjeta rounded-xl p-4 grid md:grid-cols-2 gap-3'
 
 function Despliegue({ abierta, clave, children }) {
   return (
@@ -59,7 +58,7 @@ function Detalle({ abierta, alternar, clave, texto }) {
 
 function Asistentes({ personas, conValoracion }) {
   if (personas.length === 0) {
-    return <p className="text-xs text-zinc-500 pt-3">Aún no hay inscritos.</p>
+    return <p className="text-xs text-zinc-400 pt-3">Aún no hay inscritos.</p>
   }
 
   return (
@@ -72,10 +71,10 @@ function Asistentes({ personas, conValoracion }) {
               (persona.valoracion ? (
                 <Estrellas cantidad={persona.valoracion} />
               ) : (
-                <span className="text-zinc-600">Sin valorar</span>
+                <span className="text-zinc-500">Sin valorar</span>
               ))}
           </div>
-          {persona.comentario && <p className="italic text-zinc-500 mt-0.5">"{persona.comentario}"</p>}
+          {persona.comentario && <p className="italic text-zinc-400 mt-0.5">"{persona.comentario}"</p>}
         </li>
       ))}
     </ul>
@@ -108,7 +107,7 @@ function FormularioRespuesta({ solicitud, valor, cambiar, enviar, cerrar }) {
       className={claseCaja + ' mt-4 bg-fondo'}
     >
       <CamposSesion valor={valor} cambiar={cambiar} className={claseCampo + ' bg-tarjeta'} />
-      <p className="md:col-span-2 text-xs text-zinc-500">
+      <p className="md:col-span-2 text-xs text-zinc-400">
         {agendaDirecto
           ? 'Es el horario que sugirió ' + solicitud.estudiante + ': la asesoría queda agendada de una vez.'
           : solicitud.sugeridaFecha
@@ -286,21 +285,18 @@ function PortalMentores({
     }
   }
 
-  const claseTarjeta = 'bg-tarjeta border border-borde rounded-2xl p-5'
-  const claseEtiqueta = 'text-xs font-semibold tracking-wider text-zinc-400'
+  const claseTarjeta = 'bg-tarjeta rounded-2xl p-5'
+  const claseEtiqueta = 'text-xs text-zinc-400'
   const claseBotonLleno = 'bg-primario hover:bg-red-700 text-sm font-semibold px-5 py-2 rounded-lg'
-  const rolEtiqueta = { docente: 'DOCENTE', admin: 'ADMINISTRADOR' }[yo.rol] || 'MENTOR VOLUNTARIO'
+  const rolEtiqueta = { docente: 'Docente', admin: 'Administrador' }[yo.rol] || 'Mentor voluntario'
 
   return (
     <div>
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
         <div>
-          <span className="text-[10px] font-bold tracking-wider border border-zinc-600 rounded-full px-3 py-1">
-            {rolEtiqueta}
-          </span>
-          <h1 className="text-2xl font-bold mt-3">Bienvenido, {yo.nombre}</h1>
+          <h1 className="text-2xl font-semibold">Bienvenido, {yo.nombre}</h1>
           <p className="text-sm text-zinc-400 mt-1">
-            Tienes {programadas} {programadas === 1 ? 'asesoría programada' : 'asesorías programadas'} y{' '}
+            {rolEtiqueta} · Tienes {programadas} {programadas === 1 ? 'asesoría programada' : 'asesorías programadas'} y{' '}
             {pendientes.length} {pendientes.length === 1 ? 'solicitud pendiente' : 'solicitudes pendientes'}.
             {sinEnlace > 0 && (
               <span className="text-acento">
@@ -310,16 +306,16 @@ function PortalMentores({
             )}
           </p>
           {sinMaterias && (
-            <p className="text-sm text-acento bg-primario/10 border border-primario/30 rounded-xl px-4 py-3 mt-3 max-w-xl">
+            <p className="text-sm text-acento bg-primario/10 rounded-xl px-4 py-3 mt-3 max-w-xl">
               Aún no tienes materias asignadas, así que no puedes atender solicitudes ni publicar asesorías. Pídele a tu
               coordinador que te asigne las materias que puedes atender.
             </p>
           )}
           {alcance?.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 mt-3">
-              <span className="text-xs text-zinc-500 mr-1">Tus materias asignadas:</span>
+              <span className="text-xs text-zinc-400 mr-1">Tus materias asignadas:</span>
               {alcance.map((materia) => (
-                <span key={materia} className="text-[11px] text-zinc-200 bg-tarjeta border border-borde rounded-md px-2 py-0.5">
+                <span key={materia} className="text-xs text-zinc-300 bg-tarjeta rounded-full px-2.5 py-0.5">
                   {materia}
                 </span>
               ))}
@@ -333,10 +329,8 @@ function PortalMentores({
           title={sinMaterias ? 'Necesitas materias asignadas para publicar' : undefined}
           className="shrink-0 self-start lg:self-auto flex items-center gap-2 bg-primario hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-semibold px-4 py-2 rounded-full"
         >
-          <motion.span animate={{ rotate: mostrarFormulario ? 135 : 0 }}>
-            <CalendarPlus size={16} />
-          </motion.span>
-          Nueva Disponibilidad
+          <CalendarPlus size={16} />
+          Nueva disponibilidad
         </motion.button>
       </div>
 
@@ -396,25 +390,19 @@ function PortalMentores({
         variants={lista}
         initial="oculto"
         animate="visible"
-        className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6"
+        className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6"
       >
-        <motion.div variants={item} whileHover={{ y: -4 }} className={claseTarjeta}>
-          <div className="inline-block bg-zinc-800 rounded-full p-2 text-acento">
-            <Users size={16} />
-          </div>
-          <p className={claseEtiqueta + ' mt-3 mb-2'}>ESTUDIANTES AYUDADOS</p>
-          <AnimatedCounter value={estudiantes} animateOnView />
+        <motion.div variants={item} className={claseTarjeta}>
+          <p className={claseEtiqueta}>Estudiantes ayudados</p>
+          <p className="text-3xl font-semibold mt-3">{estudiantes}</p>
         </motion.div>
 
-        <motion.div variants={item} whileHover={{ y: -4 }} className={claseTarjeta}>
-          <div className="inline-block bg-zinc-800 rounded-full p-2 text-acento">
-            <Clock size={16} />
-          </div>
-          <p className={claseEtiqueta + ' mt-3 mb-2'}>HORAS IMPARTIDAS</p>
-          <AnimatedCounter value={horas} decimals={1} animateOnView />
+        <motion.div variants={item} className={claseTarjeta}>
+          <p className={claseEtiqueta}>Horas impartidas</p>
+          <p className="text-3xl font-semibold mt-3">{horas.toFixed(1)}</p>
         </motion.div>
 
-        <motion.div variants={item} whileHover={{ y: -4 }} className={claseTarjeta + ' md:col-span-2'}>
+        <motion.div variants={item} className={claseTarjeta + ' col-span-2'}>
           {tendencia.length > 1 ? (
             <Sparkline
               label="Calificación promedio"
@@ -427,10 +415,10 @@ function PortalMentores({
             />
           ) : (
             <div>
-              <p className={claseEtiqueta}>CALIFICACIÓN PROMEDIO</p>
-              <p className="text-3xl font-medium mt-6">
+              <p className={claseEtiqueta}>Calificación promedio</p>
+              <p className="text-3xl font-semibold mt-3">
                 {calificacion || '—'}
-                <span className="text-base text-acento"> / 5</span>
+                <span className="text-base font-normal text-zinc-400"> / 5</span>
               </p>
             </div>
           )}
@@ -441,14 +429,14 @@ function PortalMentores({
         <div className="xl:col-span-2 space-y-10">
           <section>
             <div className="flex items-center gap-3 mb-4">
-              <h2 className="text-lg font-bold">Solicitudes disponibles</h2>
-              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700">
+              <h2 className="text-lg font-semibold">Solicitudes disponibles</h2>
+              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700">
                 {pendientes.length}
               </span>
             </div>
 
             {pendientes.length === 0 && (
-              <p className="text-sm text-zinc-500 bg-tarjeta border border-dashed border-borde rounded-xl p-5">
+              <p className="text-sm text-zinc-400 bg-tarjeta border border-dashed border-borde rounded-xl p-5">
                 No hay solicitudes pendientes{alcance !== null ? ' de tus materias' : ''}.
               </p>
             )}
@@ -467,16 +455,15 @@ function PortalMentores({
                       animate="visible"
                       exit="salida"
                       className={
-                        'bg-tarjeta border border-borde border-l-4 rounded-xl p-4 ' +
-                        (urgente ? 'border-l-primario' : 'border-l-zinc-600')
+                        'bg-tarjeta rounded-xl p-4'
                       }
                     >
-                      <div className="flex items-center gap-4">
-                      <div className="shrink-0 size-11 rounded-lg bg-zinc-800 text-acento flex items-center justify-center">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                      <div className="hidden sm:flex shrink-0 size-11 rounded-lg bg-zinc-800 text-acento items-center justify-center">
                         <BookOpen size={20} />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-base font-bold">{solicitud.materia}</p>
+                        <p className="text-base font-semibold">{solicitud.materia}</p>
                         <p className="text-sm text-zinc-400 mt-0.5">{solicitud.tema}</p>
                         <div className="flex flex-wrap gap-2 mt-2.5">
                           <span className={claseDato}>
@@ -488,7 +475,7 @@ function PortalMentores({
                             {hace(solicitud.creada)}
                           </span>
                           <span className={claseDato + (urgente ? ' !text-acento !border-primario/40' : '')}>
-                            <Clock size={13} className="text-acento" />
+                            <Clock size={13} className="text-zinc-400" />
                             {solicitud.urgencia}
                           </span>
                           <span className={claseDato}>
@@ -497,7 +484,7 @@ function PortalMentores({
                           </span>
                           {horarioSugerido(solicitud) && (
                             <span className={claseDato + ' !text-white !border-primario/40'}>
-                              <CalendarClock size={13} className="text-acento" />
+                              <CalendarClock size={13} className="text-zinc-400" />
                               Sugiere: {horarioSugerido(solicitud)}
                             </span>
                           )}
@@ -506,7 +493,7 @@ function PortalMentores({
                       <motion.button
                         {...toque}
                         onClick={() => abrirRespuesta(solicitud)}
-                        className="shrink-0 bg-primario hover:bg-red-700 rounded-full px-4 py-2 text-xs font-bold transition-colors"
+                        className="shrink-0 bg-primario hover:bg-red-700 rounded-full px-4 py-2 text-xs font-semibold transition-colors"
                       >
                         {respondiendo?.id === solicitud.id ? 'Cerrar' : 'Responder'}
                       </motion.button>
@@ -521,14 +508,14 @@ function PortalMentores({
 
           <section>
             <div className="flex items-center gap-3 mb-4">
-              <h2 className="text-lg font-bold">Programadas</h2>
-              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700">
+              <h2 className="text-lg font-semibold">Programadas</h2>
+              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700">
                 {programadas}
               </span>
             </div>
 
             {programadas === 0 && (
-              <p className="text-sm text-zinc-500 bg-tarjeta border border-dashed border-borde rounded-xl p-5">
+              <p className="text-sm text-zinc-400 bg-tarjeta border border-dashed border-borde rounded-xl p-5">
                 No tienes nada programado. Publica una disponibilidad o acepta una solicitud.
               </p>
             )}
@@ -548,29 +535,29 @@ function PortalMentores({
                       animate="visible"
                       exit="salida"
                       onClick={() => abrirDetalle(asesoria.id)}
-                      className="bg-tarjeta border border-borde border-l-4 border-l-primario rounded-xl p-4"
+                      className="bg-tarjeta rounded-xl p-4"
                     >
                       <div className="flex items-start gap-4">
-                        <div className="shrink-0 bg-fondo border border-borde rounded-xl px-3 py-2 text-center">
-                          <p className="text-[10px] font-semibold text-acento">{mesDe(asesoria.fecha)}</p>
-                          <p className="text-xl font-bold leading-tight">{diaDe(asesoria.fecha)}</p>
+                        <div className="shrink-0 w-11 text-center">
+                          <p className="text-xs text-zinc-400">{mesDe(asesoria.fecha)}</p>
+                          <p className="text-xl font-semibold leading-tight">{diaDe(asesoria.fecha)}</p>
                         </div>
 
                         <div className="min-w-0 flex-1">
                           <p className="flex flex-wrap items-center gap-2">
-                            <span className="text-base font-bold">{asesoria.materia}</span>
-                            {asesoria.privada && <span className={insignia}>INDIVIDUAL</span>}
+                            <span className="text-base font-semibold">{asesoria.materia}</span>
+                            {asesoria.privada && <span className={insignia}>Individual</span>}
                           </p>
                           <div className="flex flex-wrap gap-2 mt-2.5">
                             <span className={claseDato}>
-                              <Clock size={13} className="text-acento" />
+                              <Clock size={13} className="text-zinc-400" />
                               {asesoria.horario}
                             </span>
                             <span className={claseDato + (faltaEnlace ? ' !text-acento !border-primario/40' : '')}>
                               {asesoria.virtual ? (
-                                <Video size={13} className="text-acento" />
+                                <Video size={13} className="text-zinc-400" />
                               ) : (
-                                <MapPin size={13} className="text-acento" />
+                                <MapPin size={13} className="text-zinc-400" />
                               )}
                               {modalidadDe(asesoria)}
                             </span>
@@ -594,7 +581,7 @@ function PortalMentores({
                         </div>
 
                         <div className="shrink-0 flex flex-col items-end gap-2">
-                          <ChevronRight size={18} className="text-zinc-500" />
+                          <ChevronRight size={18} className="text-zinc-400" />
                           <button
                             onClick={() =>
                               setEditando(editando?.id === asesoria.id ? null : { id: asesoria.id, ...sesionDe(asesoria) })
@@ -650,7 +637,7 @@ function PortalMentores({
                     initial="oculto"
                     animate="visible"
                     exit="salida"
-                    className="bg-tarjeta border border-borde border-l-4 border-l-emerald-500 rounded-xl p-4"
+                    className="bg-tarjeta rounded-xl p-4"
                   >
                     <div className="flex items-start gap-4">
                       <div className="shrink-0 size-11 rounded-lg bg-zinc-800 text-acento flex items-center justify-center">
@@ -658,9 +645,9 @@ function PortalMentores({
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="flex flex-wrap items-center gap-2">
-                          <span className="text-base font-bold">{solicitud.materia}</span>
+                          <span className="text-base font-semibold">{solicitud.materia}</span>
                           <span className={insignia + 'text-acento !border-primario/40 bg-primario/10'}>
-                            POR AGENDAR
+                            Por agendar
                           </span>
                         </p>
                         <p className="text-sm text-zinc-400 mt-0.5">{solicitud.tema}</p>
@@ -670,7 +657,7 @@ function PortalMentores({
                             {solicitud.estudiante}
                           </span>
                           <span className={claseDato}>
-                            <Clock size={13} className="text-acento" />
+                            <Clock size={13} className="text-zinc-400" />
                             {solicitud.urgencia}
                           </span>
                           <span className={claseDato}>
@@ -695,7 +682,7 @@ function PortalMentores({
                       <motion.button
                         {...toque}
                         onClick={() => abrirRespuesta(solicitud)}
-                        className="bg-primario hover:bg-red-700 rounded-full px-4 py-2 text-xs font-bold transition-colors"
+                        className="bg-primario hover:bg-red-700 rounded-full px-4 py-2 text-xs font-semibold transition-colors"
                       >
                         {horarioSugerido(solicitud) ? 'Agendar o proponer' : 'Proponer horario'}
                       </motion.button>
@@ -716,7 +703,7 @@ function PortalMentores({
                       initial="oculto"
                       animate="visible"
                       exit="salida"
-                      className="bg-tarjeta border border-borde border-l-4 border-l-amber-500 rounded-xl p-4"
+                      className="bg-tarjeta rounded-xl p-4"
                     >
                       <div className="flex items-start gap-4">
                         <div className="shrink-0 size-11 rounded-lg bg-zinc-800 text-amber-400 flex items-center justify-center">
@@ -724,7 +711,7 @@ function PortalMentores({
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="flex flex-wrap items-center gap-2">
-                            <span className="text-base font-bold">{solicitud.materia}</span>
+                            <span className="text-base font-semibold">{solicitud.materia}</span>
                             <span className={insignia + '!text-amber-400 !border-amber-500/40 !bg-amber-500/10'}>
                               ESPERANDO AL ESTUDIANTE
                             </span>
@@ -740,7 +727,7 @@ function PortalMentores({
                               Propusiste: {fechaCorta(p.fecha)}, {p.horario} · {p.virtual ? 'Virtual' : p.lugar}
                             </span>
                             {horarioSugerido(solicitud) && (
-                              <span className={claseDato + ' text-zinc-500'}>Había sugerido: {horarioSugerido(solicitud)}</span>
+                              <span className={claseDato + ' text-zinc-400'}>Había sugerido: {horarioSugerido(solicitud)}</span>
                             )}
                           </div>
                         </div>
@@ -760,14 +747,14 @@ function PortalMentores({
 
         <section>
           <div className="flex items-center gap-3 mb-4">
-            <h2 className="text-lg font-bold">Historial</h2>
-            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700">
+            <h2 className="text-lg font-semibold">Historial</h2>
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700">
               {historial.length}
             </span>
           </div>
 
           {historial.length === 0 && (
-            <p className="text-sm text-zinc-500 bg-tarjeta border border-dashed border-borde rounded-xl p-5">
+            <p className="text-sm text-zinc-400 bg-tarjeta border border-dashed border-borde rounded-xl p-5">
               Aquí quedará el registro de tus sesiones, asistentes y reseñas.
             </p>
           )}
@@ -780,11 +767,11 @@ function PortalMentores({
                 return (
                   <div
                     key={registro.clave}
-                    className="bg-tarjeta border border-borde border-l-4 border-l-zinc-600 rounded-xl p-4"
+                    className="bg-tarjeta rounded-xl p-4"
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <p className="text-sm font-bold">{solicitud.materia}</p>
-                      <p className="text-xs text-zinc-500 shrink-0">{fechaCorta(registro.fecha)}</p>
+                      <p className="text-sm font-semibold">{solicitud.materia}</p>
+                      <p className="text-xs text-zinc-400 shrink-0">{fechaCorta(registro.fecha)}</p>
                     </div>
                     <div className="flex flex-wrap gap-2 mt-2.5">
                       <span className={claseDato}>
@@ -806,11 +793,11 @@ function PortalMentores({
                 <CajaClicable
                   key={registro.clave}
                   onClick={() => abrirDetalle(asesoria.id)}
-                  className="bg-tarjeta border border-borde border-l-4 border-l-zinc-600 rounded-xl p-4"
+                  className="bg-tarjeta rounded-xl p-4"
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <p className="text-sm font-bold">{asesoria.materia}</p>
-                    <p className="text-xs text-zinc-500 shrink-0">{fechaCorta(registro.fecha)}</p>
+                    <p className="text-sm font-semibold">{asesoria.materia}</p>
+                    <p className="text-xs text-zinc-400 shrink-0">{fechaCorta(registro.fecha)}</p>
                   </div>
 
                   <div className="flex flex-wrap gap-2 mt-2.5">
@@ -849,7 +836,7 @@ function PortalMentores({
                   <Despliegue abierta={abierta} clave={registro.clave}>
                     <Asistentes personas={asesoria.asistentes} conValoracion />
                     <div className="pt-4">
-                      <p className="text-xs text-zinc-500 mb-1.5">
+                      <p className="text-xs text-zinc-400 mb-1.5">
                         Retroalimentación para {asesoria.privada ? 'el estudiante' : 'los estudiantes'}
                       </p>
                       <textarea

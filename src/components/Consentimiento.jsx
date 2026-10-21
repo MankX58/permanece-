@@ -35,7 +35,7 @@ function Consentimiento({ nombre, aceptar, rechazar }) {
           <div className="bg-primario rounded-lg p-2 w-fit">
             <ShieldCheck size={20} />
           </div>
-          <h2 className="text-xl font-bold mt-4">
+          <h2 className="text-xl font-semibold mt-4">
             Antes de empezar{nombre ? ', ' + nombre.split(' ')[0] : ''}
           </h2>
           <p className="text-sm text-zinc-400 mt-1">

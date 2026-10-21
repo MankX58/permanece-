@@ -102,7 +102,7 @@ function SelectorMateria({ catalogo: carreras, value, onChange, className = '' }
       {abierto && (
         <div className="absolute z-20 mt-1 w-full bg-tarjeta border border-borde rounded-lg shadow-lg [color-scheme:dark]">
           <div className="flex items-center gap-2 px-3 py-2 border-b border-borde">
-            <span className="text-xs text-zinc-500 shrink-0">Carrera</span>
+            <span className="text-xs text-zinc-400 shrink-0">Carrera</span>
             <select
               value={carrera}
               onChange={(e) => cambiarCarrera(e.target.value)}
@@ -117,7 +117,7 @@ function SelectorMateria({ catalogo: carreras, value, onChange, className = '' }
 
           <div onMouseDown={(e) => e.preventDefault()} className="max-h-56 overflow-y-auto py-1">
             {visibles.length === 0 && (
-              <p className="px-3 py-3 text-sm text-zinc-500">
+              <p className="px-3 py-3 text-sm text-zinc-400">
                 Sin resultados{carrera ? '. Prueba con «Todas» las carreras.' : '.'}
               </p>
             )}
@@ -136,7 +136,7 @@ function SelectorMateria({ catalogo: carreras, value, onChange, className = '' }
                       title={carrerasDe.get(materia).join('\n')}
                       className={
                         'block truncate text-[11px] ' +
-                        (carrerasDe.get(materia).length > 1 ? 'text-acento/80' : 'text-zinc-500')
+                        (carrerasDe.get(materia).length > 1 ? 'text-acento/80' : 'text-zinc-400')
                       }
                     >
                       {etiquetaCarreras(carrerasDe.get(materia))}
@@ -148,7 +148,7 @@ function SelectorMateria({ catalogo: carreras, value, onChange, className = '' }
             ))}
 
             {resultados.length > LIMITE && (
-              <p className="px-3 py-2 text-xs text-zinc-500">
+              <p className="px-3 py-2 text-xs text-zinc-400">
                 {resultados.length - LIMITE} más. Sigue escribiendo o elige una carrera.
               </p>
             )}

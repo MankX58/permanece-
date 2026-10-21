@@ -25,7 +25,7 @@ function CajaClicable({ onClick, className = '', children, ...resto }) {
       className={
         className +
         (onClick
-          ? ' cursor-pointer hover:border-primario/50 hover:bg-zinc-900/60 focus-visible:outline-none focus-visible:border-acento transition-colors'
+          ? ' cursor-pointer hover:bg-zinc-900 transition-colors'
           : '')
       }
     >

@@ -33,7 +33,7 @@ function Login() {
         >
           <GraduationCap size={28} />
         </motion.div>
-        <h1 className="text-2xl font-bold text-acento mt-4">PERMANECE+</h1>
+        <h1 className="text-2xl font-semibold text-acento mt-4">PERMANECE+</h1>
         <p className="text-sm text-zinc-400 mt-2">Inicia sesión para ver tus asesorías.</p>
         <motion.button
           {...toque}

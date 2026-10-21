@@ -10,7 +10,7 @@ import { toque } from '../animaciones.js'
 function Dato({ etiqueta, children }) {
   return (
     <div className="flex gap-4 py-2.5">
-      <dt className="w-24 shrink-0 text-xs text-zinc-500 pt-0.5">{etiqueta}</dt>
+      <dt className="w-24 shrink-0 text-xs text-zinc-400 pt-0.5">{etiqueta}</dt>
       <dd className="text-sm min-w-0 break-words">{children}</dd>
     </div>
   )
@@ -19,7 +19,7 @@ function Dato({ etiqueta, children }) {
 function Seccion({ titulo, children }) {
   return (
     <section className="mt-7">
-      <h3 className="text-xs font-semibold tracking-wider text-zinc-500 mb-2">{titulo}</h3>
+      <h3 className="text-sm font-medium text-zinc-300 mb-2">{titulo}</h3>
       {children}
     </section>
   )
@@ -120,20 +120,12 @@ function DetalleAsesoria({
         <div className="p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <p className="flex flex-wrap gap-2 text-[10px] font-bold tracking-wide">
-                <span className={'px-2.5 py-0.5 rounded-full ' + (pasada ? 'bg-zinc-800 text-zinc-400' : 'bg-primario/20 text-acento')}>
-                  {pasada ? 'REALIZADA' : 'PRÓXIMA'}
-                </span>
-                <span className="px-2.5 py-0.5 rounded-full bg-zinc-800 text-zinc-300">
-                  {privada ? 'INDIVIDUAL' : 'GRUPAL'}
-                </span>
-                <span className="px-2.5 py-0.5 rounded-full bg-zinc-800 text-zinc-300">
-                  {virtual ? 'VIRTUAL' : 'PRESENCIAL'}
-                </span>
+              <h2 className="text-xl font-semibold">{asesoria.materia}</h2>
+              <p className="text-sm text-zinc-400 mt-1">
+                {pasada ? 'Realizada' : 'Próxima'} · {privada ? 'Individual' : 'Grupal'} · {virtual ? 'Virtual' : 'Presencial'}
               </p>
-              <h2 className="text-xl font-bold mt-3">{asesoria.materia}</h2>
             </div>
-            <button onClick={cerrar} title="Cerrar" className="shrink-0 text-zinc-500 hover:text-white transition-colors">
+            <button onClick={cerrar} title="Cerrar" className="shrink-0 text-zinc-400 hover:text-white transition-colors">
               <X size={20} />
             </button>
           </div>
@@ -142,7 +134,7 @@ function DetalleAsesoria({
             <Dato etiqueta="Fecha">{fechaLarga(asesoria.fecha)}</Dato>
             <Dato etiqueta="Horario">
               {asesoria.horario}{' '}
-              <span className="text-zinc-500">({horasDe(asesoria.horario).toFixed(1)} h)</span>
+              <span className="text-zinc-400">({horasDe(asesoria.horario).toFixed(1)} h)</span>
             </Dato>
             <Dato etiqueta={virtual ? 'Reunión' : 'Lugar'}>
               {virtual ? (
@@ -167,7 +159,7 @@ function DetalleAsesoria({
               )}
             </Dato>
             <Dato etiqueta={asesoria.tipo === 'Docente' ? 'Docente' : 'Mentor'}>
-              {asesoria.tutor} <span className="text-zinc-500">· {asesoria.rol}</span>
+              {asesoria.tutor} <span className="text-zinc-400">· {asesoria.rol}</span>
             </Dato>
             <Dato etiqueta="Programa">{programaDe(asesoria.materia, catalogo)}</Dato>
             {!privada && (
@@ -177,12 +169,12 @@ function DetalleAsesoria({
             )}
           </dl>
 
-          <Seccion titulo="TEMAS">
+          <Seccion titulo="Temas">
             <p className="text-sm text-zinc-300">{asesoria.descripcion}</p>
           </Seccion>
 
           {etapas.length > 0 && (
-            <Seccion titulo="SEGUIMIENTO">
+            <Seccion titulo="Seguimiento">
               <ol className="space-y-2">
                 {etapas.map((etapa, posicion) => (
                   <li key={posicion} className="flex items-start gap-2.5 text-sm text-zinc-300">
@@ -195,8 +187,8 @@ function DetalleAsesoria({
           )}
 
           {inscrita && pasada && (
-            <Seccion titulo="RETROALIMENTACIÓN Y VALORACIÓN">
-              <p className="text-xs text-zinc-500 mb-3">
+            <Seccion titulo="Retroalimentación y valoración">
+              <p className="text-xs text-zinc-400 mb-3">
                 Asistencia registrada por el mentor:{' '}
                 <span
                   className={
@@ -212,14 +204,14 @@ function DetalleAsesoria({
               </p>
               {asesoria.resumen ? (
                 <p className="text-sm text-zinc-300">
-                  <span className="text-zinc-500">{asesoria.tutor}: </span>
+                  <span className="text-zinc-400">{asesoria.tutor}: </span>
                   {asesoria.resumen}
                 </p>
               ) : (
-                <p className="text-sm text-zinc-500">El mentor aún no deja retroalimentación.</p>
+                <p className="text-sm text-zinc-400">El mentor aún no deja retroalimentación.</p>
               )}
               <div className="mt-4 max-w-xs">
-                <p className="text-xs text-zinc-500 mb-1.5">Tu valoración</p>
+                <p className="text-xs text-zinc-400 mb-1.5">Tu valoración</p>
                 <Valoracion asesoria={asesoria} valorar={valorar} />
               </div>
             </Seccion>
@@ -227,9 +219,9 @@ function DetalleAsesoria({
 
           {esMia && (
             <>
-              <Seccion titulo={privada ? 'ESTUDIANTE' : 'INSCRITOS'}>
+              <Seccion titulo={privada ? 'Estudiante' : 'Inscritos'}>
                 {asistentes.length === 0 ? (
-                  <p className="text-sm text-zinc-500">Aún no hay inscritos.</p>
+                  <p className="text-sm text-zinc-400">Aún no hay inscritos.</p>
                 ) : (
                   <ul className="space-y-3">
                     {asistentes.map((persona, posicion) => (
@@ -240,12 +232,12 @@ function DetalleAsesoria({
                             (persona.valoracion ? (
                               <Estrellas cantidad={persona.valoracion} />
                             ) : (
-                              <span className="text-xs text-zinc-600">Sin valorar</span>
+                              <span className="text-xs text-zinc-500">Sin valorar</span>
                             ))}
                         </div>
                         {pasada && (
                           <div className="flex items-center gap-2 mt-2">
-                            <span className="text-xs text-zinc-500 mr-1">Asistencia:</span>
+                            <span className="text-xs text-zinc-400 mr-1">Asistencia:</span>
                             {[
                               { valor: true, texto: 'Asistió' },
                               { valor: false, texto: 'No asistió' },
@@ -266,12 +258,12 @@ function DetalleAsesoria({
                               </button>
                             ))}
                             {persona.asistio === null && (
-                              <span className="text-xs text-zinc-600">Sin registrar</span>
+                              <span className="text-xs text-zinc-500">Sin registrar</span>
                             )}
                           </div>
                         )}
                         {persona.comentario && (
-                          <p className="text-xs italic text-zinc-500 mt-1">"{persona.comentario}"</p>
+                          <p className="text-xs italic text-zinc-400 mt-1">"{persona.comentario}"</p>
                         )}
                       </li>
                     ))}
@@ -280,7 +272,7 @@ function DetalleAsesoria({
               </Seccion>
 
               {!pasada && virtual && (
-                <Seccion titulo="ENLACE DE LA REUNIÓN">
+                <Seccion titulo="Enlace de la reunión">
                   <div className="flex gap-2">
                     <input
                       type="url"
@@ -302,7 +294,7 @@ function DetalleAsesoria({
               )}
 
               {pasada && (
-                <Seccion titulo="TU RETROALIMENTACIÓN">
+                <Seccion titulo="Tu retroalimentación">
                   <textarea
                     value={resumen}
                     onChange={(e) => setResumen(e.target.value)}

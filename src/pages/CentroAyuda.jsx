@@ -9,19 +9,19 @@ function CentroAyuda({ verIntroduccion }) {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-2xl font-bold">Centro de Ayuda</h1>
+      <h1 className="text-2xl font-semibold">Centro de ayuda</h1>
 
       <button
         onClick={verIntroduccion}
         className="mt-5 flex items-center gap-2 text-sm font-semibold border border-borde hover:border-primario/60 hover:bg-zinc-900/60 rounded-xl px-4 py-3 transition-colors"
       >
-        <Compass size={16} className="text-acento" />
+        <Compass size={16} className="text-zinc-400" />
         Ver la introducción de mi rol
       </button>
 
       <motion.div variants={lista} initial="oculto" animate="visible" className="space-y-2.5 mt-6">
         {preguntas.map((pregunta) => (
-          <motion.div key={pregunta.id} variants={item} className="bg-tarjeta border border-borde rounded-xl">
+          <motion.div key={pregunta.id} variants={item} className="bg-tarjeta rounded-xl">
             <button
               onClick={() => setAbierta(abierta === pregunta.id ? null : pregunta.id)}
               className="w-full flex items-center justify-between gap-4 p-4 text-left text-sm font-semibold"

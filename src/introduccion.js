@@ -18,8 +18,8 @@ const estudiante = {
       titulo: 'Qué puedes hacer',
       texto: 'Todo está en el menú de la izquierda:',
       puntos: [
-        'Banco de Asesorías: busca por materia e inscríbete en una sesión con cupo.',
-        'Mis Solicitudes: si no hay una asesoría de tu materia, pídela y sugiere el día y la hora que te sirven.',
+        'Banco de asesorías: busca por materia e inscríbete en una sesión con cupo.',
+        'Mis solicitudes: si no hay una asesoría de tu materia, pídela y sugiere el día y la hora que te sirven.',
         'Calendario: tus sesiones del mes, con la fecha, el lugar o el enlace.',
         'La campana te avisa cuando un mentor agenda, cambia o cancela algo.',
       ],
@@ -47,7 +47,7 @@ const estudiante = {
 }
 
 const mentor = {
-  titulo: 'Bienvenido al Portal de Mentores',
+  titulo: 'Bienvenido al Portal de mentores',
   subtitulo: 'Tu trabajo ayuda a que otros estudiantes permanezcan',
   pasos: [
     {
@@ -61,7 +61,7 @@ const mentor = {
     },
     {
       titulo: 'Qué puedes hacer',
-      texto: 'En el Portal de Mentores:',
+      texto: 'En el Portal de mentores:',
       puntos: [
         'Nueva Disponibilidad: publica una sesión en el banco con fecha, horario, cupos y modalidad.',
         'Solicitudes disponibles: respóndelas con el horario que sugirió el estudiante (queda agendada) o propón otro, que el estudiante confirma.',
@@ -162,7 +162,7 @@ const admin = {
       titulo: 'Qué puedes hacer',
       texto: 'En el menú de la izquierda:',
       puntos: [
-        'Usuarios y Roles: asigna mentor, docente, coordinador (con su programa) o administrador.',
+        'Usuarios y roles: asigna mentor, docente, coordinador (con su programa) o administrador.',
         'Mentores y materias: asigna a cada mentor y docente las materias que puede atender; sin materias no atiende ninguna.',
         'Reportes: asesorías, asistencia, valoración y demanda por materia y por programa.',
         'Descargar el informe completo, o el de un solo programa, en Excel.',

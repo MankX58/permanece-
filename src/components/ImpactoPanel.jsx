@@ -9,31 +9,26 @@ const cambio = (valor) => (valor === null || valor === undefined ? '—' : (valo
 // Una cifra comparada entre quienes recibieron asesorías y quienes no.
 function Comparacion({ etiqueta, atendidos, otros, detalle }) {
   return (
-    <div className="bg-tarjeta border border-borde rounded-2xl p-5">
-      <p className="text-xs font-semibold tracking-wider text-zinc-400">{etiqueta}</p>
+    <div className="bg-tarjeta rounded-2xl p-5">
+      <p className="text-xs text-zinc-400">{etiqueta}</p>
       <div className="flex items-end gap-6 mt-3">
         <div>
-          <p className="text-3xl font-bold leading-none">{atendidos}</p>
-          <p className="text-[10px] font-bold tracking-wider text-acento mt-1.5">ATENDIDOS</p>
+          <p className="text-3xl font-semibold leading-none">{atendidos}</p>
+          <p className="text-[11px] text-zinc-300 mt-1.5">Atendidos</p>
         </div>
         <div>
           <p className="text-xl font-semibold text-zinc-400 leading-none">{otros}</p>
-          <p className="text-[10px] font-bold tracking-wider text-zinc-500 mt-1.5">NO ATENDIDOS</p>
+          <p className="text-[11px] text-zinc-400 mt-1.5">No atendidos</p>
         </div>
       </div>
-      <p className="text-xs text-zinc-500 mt-3">{detalle}</p>
+      <p className="text-xs text-zinc-400 mt-3">{detalle}</p>
     </div>
   )
 }
 
 function lectura(d) {
   const { atendidos: a, noAtendidos: n } = d
-  if (a.cambio === null || n.cambio === null) {
-    return (
-      'Todavía no hay datos suficientes. Se necesitan al menos ' + d.minimoGrupo +
-      ' estudiantes por grupo con promedio registrado en dos periodos seguidos.'
-    )
-  }
+  if (a.cambio === null || n.cambio === null) return null
   let texto =
     'Los estudiantes atendidos cambiaron su promedio ' + cambio(a.cambio) + ' frente a ' + cambio(n.cambio) +
     ' de quienes no recibieron asesorías.'
@@ -87,14 +82,14 @@ function ImpactoPanel({ api, programa }) {
     <section className="mt-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold">Impacto en el rendimiento y la permanencia</h2>
-          <p className="text-xs text-zinc-500 mt-1">
+          <h2 className="text-lg font-semibold">Impacto en el rendimiento y la permanencia</h2>
+          <p className="text-xs text-zinc-400 mt-1">
             Compara a los estudiantes que recibieron asesorías con los que no. El promedio lo registra cada estudiante.
           </p>
         </div>
         <div className="flex items-center gap-3">
           {datos && (
-            <span className="flex items-center gap-1.5 text-xs text-zinc-500">
+            <span className="flex items-center gap-1.5 text-xs text-zinc-400">
               <motion.span
                 animate={{ opacity: [1, 0.3, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
@@ -118,46 +113,50 @@ function ImpactoPanel({ api, programa }) {
       </div>
 
       {error && <p className="text-sm text-acento bg-primario/10 border border-primario/30 rounded-xl p-4 mt-4">{error}</p>}
-      {!datos && !error && <p className="text-sm text-zinc-500 mt-4">Calculando...</p>}
+      {!datos && !error && <p className="text-sm text-zinc-400 mt-4">Calculando...</p>}
 
       {datos && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mt-4">
             <Comparacion
-              etiqueta="PROMEDIO"
+              etiqueta="Promedio"
               atendidos={promedio(a.promedio)}
               otros={promedio(n.promedio)}
               detalle={'Periodo ' + datos.periodo + ' · ' + a.conPromedio + ' y ' + n.conPromedio + ' con promedio registrado'}
             />
             <Comparacion
-              etiqueta="CAMBIO DEL PROMEDIO"
+              etiqueta="Cambio del promedio"
               atendidos={cambio(a.cambio)}
               otros={cambio(n.cambio)}
               detalle={'Frente a ' + datos.anterior + ' · ' + a.conCambio + ' y ' + n.conCambio + ' comparables'}
             />
             <Comparacion
-              etiqueta="EN RIESGO DE DESERCIÓN"
+              etiqueta="En riesgo de deserción"
               atendidos={porcentaje(a.pctEnRiesgo)}
               otros={porcentaje(n.pctEnRiesgo)}
               detalle={'Con promedio menor a ' + datos.umbral.toFixed(1)}
             />
             <Comparacion
-              etiqueta="SALIERON DEL RIESGO"
+              etiqueta="Salieron del riesgo"
               atendidos={porcentaje(a.pctSalieron)}
               otros={porcentaje(n.pctSalieron)}
               detalle="De quienes estaban en riesgo el periodo anterior"
             />
           </div>
 
-          <div className="bg-tarjeta border border-borde rounded-2xl p-4 mt-4">
-            <p className="text-sm text-zinc-300">{lectura(datos)}</p>
-            <p className="text-xs text-zinc-500 mt-2">
-              {total.estudiantes} estudiantes en {datos.programa || 'todos los programas'}: {a.estudiantes} atendidos en el
-              periodo y {total.conPromedio} con promedio registrado. Un grupo con menos de {datos.minimoGrupo} personas no
-              muestra cifras, para no señalar a nadie. Atendido es quien se inscribió a una asesoría ya realizada del
-              periodo y no fue marcado como ausente.
-            </p>
-          </div>
+          {lectura(datos) ? (
+            <div className="bg-tarjeta rounded-2xl p-4 mt-4">
+              <p className="text-sm text-zinc-300">{lectura(datos)}</p>
+              <p className="text-xs text-zinc-400 mt-2">
+                {total.estudiantes} estudiantes en {datos.programa || 'todos los programas'}: {a.estudiantes} atendidos en el
+                periodo y {total.conPromedio} con promedio registrado. Un grupo con menos de {datos.minimoGrupo} personas no
+                muestra cifras, para no señalar a nadie. Atendido es quien se inscribió a una asesoría ya realizada del
+                periodo y no fue marcado como ausente.
+              </p>
+            </div>
+          ) : (
+            <p className="text-sm text-zinc-400 mt-4">Todavía no hay suficientes datos</p>
+          )}
         </motion.div>
       )}
     </section>

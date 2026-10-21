@@ -31,7 +31,7 @@ function Usuarios({ yo, usuarios, cambiarRol, cambiarCarrera }) {
 
   return (
     <div className="max-w-3xl">
-      <h1 className="text-2xl font-bold">Usuarios y Roles</h1>
+      <h1 className="text-2xl font-semibold">Usuarios y roles</h1>
 
       <div className="flex items-center gap-2.5 border border-borde rounded-lg px-3 mt-6 focus-within:border-acento transition-colors">
         <Search size={16} className="text-zinc-400" />
@@ -40,7 +40,7 @@ function Usuarios({ yo, usuarios, cambiarRol, cambiarCarrera }) {
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           placeholder="Buscar por nombre o correo..."
-          className="w-full bg-transparent py-2 text-sm outline-none placeholder:text-zinc-500"
+          className="w-full bg-transparent py-2 text-sm outline-none placeholder:text-zinc-400"
         />
       </div>
 
@@ -51,10 +51,10 @@ function Usuarios({ yo, usuarios, cambiarRol, cambiarCarrera }) {
             onClick={() => setFiltro(opcion.id)}
             className={
               'relative pb-2 text-sm font-medium transition-colors ' +
-              (filtro === opcion.id ? 'text-white' : 'text-zinc-500 hover:text-zinc-300')
+              (filtro === opcion.id ? 'text-white' : 'text-zinc-400 hover:text-zinc-300')
             }
           >
-            {opcion.texto} <span className="text-xs text-zinc-500 ml-0.5">{cuantos(opcion.id)}</span>
+            {opcion.texto} <span className="text-xs text-zinc-400 ml-0.5">{cuantos(opcion.id)}</span>
             {filtro === opcion.id && (
               <motion.span
                 layoutId="filtro-usuarios"
@@ -66,7 +66,7 @@ function Usuarios({ yo, usuarios, cambiarRol, cambiarCarrera }) {
         ))}
       </div>
 
-      {visibles.length === 0 && <p className="text-sm text-zinc-500 mt-4">No hay usuarios con ese criterio.</p>}
+      {visibles.length === 0 && <p className="text-sm text-zinc-400 mt-4">No hay usuarios con ese criterio.</p>}
 
       <div className="divide-y divide-borde">
         <AnimatePresence mode="popLayout">
@@ -78,19 +78,19 @@ function Usuarios({ yo, usuarios, cambiarRol, cambiarCarrera }) {
               initial="oculto"
               animate="visible"
               exit="salida"
-              className="py-3.5 flex items-center justify-between gap-4"
+              className="py-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4"
             >
               <div className="min-w-0">
                 <p className="text-sm font-medium truncate">{usuario.nombre}</p>
-                <p className="text-xs text-zinc-500 truncate">
+                <p className="text-xs text-zinc-400 truncate">
                   {usuario.email}
                   {usuario.carrera && <span className="text-zinc-400"> · {usuario.carrera}</span>}
                 </p>
               </div>
               {usuario.id === yo.id ? (
-                <span className="text-xs text-zinc-500 capitalize shrink-0">{usuario.rol} (tú)</span>
+                <span className="text-xs text-zinc-400 capitalize shrink-0">{usuario.rol} (tú)</span>
               ) : (
-                <div className="flex flex-wrap items-center justify-end gap-2 shrink-0">
+                <div className="flex flex-wrap items-center sm:justify-end gap-2 sm:shrink-0">
                   {['estudiante', 'mentor', 'docente'].includes(usuario.rol) && (
                     <select
                       value={usuario.carrera || ''}

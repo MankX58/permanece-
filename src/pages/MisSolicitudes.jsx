@@ -22,14 +22,14 @@ import { item, toque } from '../animaciones.js'
 
 const filtros = ['Todas', 'Pendientes', 'Por confirmar', 'Aceptadas']
 
-const claseInsignia = 'text-[10px] font-bold tracking-wide px-2.5 py-1 rounded-md border '
+const claseInsignia = 'text-xs px-2 py-0.5 rounded-full '
 const insignias = {
-  pendiente: claseInsignia + 'bg-zinc-800 text-zinc-300 border-zinc-700',
-  aceptada: claseInsignia + 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
-  urgente: claseInsignia + 'bg-primario/10 text-acento border-primario/40',
-  confirmar: claseInsignia + 'bg-amber-500/10 text-amber-400 border-amber-500/40',
+  pendiente: claseInsignia + 'bg-zinc-800 text-zinc-300',
+  aceptada: claseInsignia + 'bg-emerald-500/10 text-emerald-400',
+  urgente: claseInsignia + 'bg-primario/10 text-acento',
+  confirmar: claseInsignia + 'bg-amber-500/10 text-amber-400',
 }
-const claseDato = 'flex items-center gap-1.5 text-xs text-zinc-300 bg-fondo border border-borde rounded-lg px-2.5 py-1.5'
+const claseDato = 'flex items-center gap-1.5 text-xs text-zinc-400'
 
 function MisSolicitudes({
   asesorias,
@@ -115,17 +115,17 @@ function MisSolicitudes({
 
   return (
     <div className="max-w-3xl">
-      <h1 className="text-2xl font-bold">Mis Solicitudes</h1>
+      <h1 className="text-2xl font-semibold">Mis solicitudes</h1>
 
       <div className="flex items-center gap-3 mt-8 mb-4">
-        <h2 className="text-lg font-bold">Próximas sesiones</h2>
-        <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700">
+        <h2 className="text-lg font-semibold">Próximas sesiones</h2>
+        <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700">
           {proximas.length}
         </span>
       </div>
 
       {proximas.length === 0 && (
-        <p className="text-sm text-zinc-500 bg-tarjeta border border-dashed border-borde rounded-xl p-5">
+        <p className="text-sm text-zinc-400 bg-tarjeta border border-dashed border-borde rounded-xl p-5">
           Aún no tienes sesiones. Inscríbete en el banco o pide una asesoría abajo.
         </p>
       )}
@@ -141,29 +141,29 @@ function MisSolicitudes({
               animate="visible"
               exit="salida"
               onClick={() => abrirDetalle(asesoria.id)}
-              className="bg-tarjeta border border-borde border-l-4 border-l-primario rounded-xl p-4 flex items-center gap-4"
+              className="bg-tarjeta rounded-xl p-4 flex items-center gap-4"
             >
-              <div className="shrink-0 bg-fondo border border-borde rounded-xl px-3 py-2 text-center">
-                <p className="text-[10px] font-semibold text-acento">{mesDe(asesoria.fecha)}</p>
-                <p className="text-xl font-bold leading-tight">{diaDe(asesoria.fecha)}</p>
+              <div className="shrink-0 w-11 text-center">
+                <p className="text-xs text-zinc-400">{mesDe(asesoria.fecha)}</p>
+                <p className="text-xl font-semibold leading-tight">{diaDe(asesoria.fecha)}</p>
               </div>
 
               <div className="min-w-0 flex-1">
                 <p className="flex flex-wrap items-center gap-2">
-                  <span className="text-base font-bold">{asesoria.materia}</span>
-                  {asesoria.privada && <span className={insignias.pendiente}>INDIVIDUAL</span>}
+                  <span className="text-base font-semibold">{asesoria.materia}</span>
+                  {asesoria.privada && <span className={insignias.pendiente}>Individual</span>}
                 </p>
                 <p className="text-sm text-zinc-400 mt-0.5">{asesoria.tutor}</p>
                 <div className="flex flex-wrap gap-2 mt-2.5">
                   <span className={claseDato}>
-                    <Clock size={13} className="text-acento" />
+                    <Clock size={13} className="text-zinc-400" />
                     {asesoria.horario}
                   </span>
                   <span className={claseDato}>
                     {asesoria.virtual ? (
-                      <Video size={13} className="text-acento" />
+                      <Video size={13} className="text-zinc-400" />
                     ) : (
-                      <MapPin size={13} className="text-acento" />
+                      <MapPin size={13} className="text-zinc-400" />
                     )}
                     {asesoria.virtual ? 'Virtual' : asesoria.lugar}
                   </span>
@@ -178,17 +178,17 @@ function MisSolicitudes({
                         Entrar a la reunión
                       </a>
                     ) : (
-                      <span className={claseDato + ' text-zinc-500'}>El mentor compartirá el enlace</span>
+                      <span className={claseDato + ' text-zinc-400'}>El mentor compartirá el enlace</span>
                     ))}
                 </div>
               </div>
 
               <div className="shrink-0 flex flex-col items-end gap-3 self-stretch justify-between">
-                <ChevronRight size={18} className="text-zinc-500" />
+                <ChevronRight size={18} className="text-zinc-400" />
                 {!asesoria.privada && (
                   <button
                     onClick={() => cancelar(asesoria.id)}
-                    className="text-xs font-medium text-zinc-500 hover:text-acento transition-colors"
+                    className="text-xs font-medium text-zinc-400 hover:text-acento transition-colors"
                   >
                     Cancelar
                   </button>
@@ -201,8 +201,8 @@ function MisSolicitudes({
 
       <div className="flex flex-wrap items-center justify-between gap-3 mt-10 pb-3 border-b border-borde">
         <div className="flex items-center gap-3">
-          <h2 className="text-lg font-bold">Solicitudes actuales</h2>
-          <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700">
+          <h2 className="text-lg font-semibold">Solicitudes actuales</h2>
+          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700">
             Total: {mias.length}
           </span>
         </div>
@@ -212,10 +212,10 @@ function MisSolicitudes({
               key={opcion}
               onClick={() => setFiltro(opcion)}
               className={
-                'text-xs font-bold px-3.5 py-1.5 rounded-full border transition-colors ' +
+                'text-xs font-semibold px-3.5 py-1.5 rounded-full border transition-colors ' +
                 (filtro === opcion
-                  ? 'bg-acento border-acento text-white'
-                  : 'bg-tarjeta border-borde text-zinc-400 hover:text-white')
+                  ? 'bg-zinc-700 border-zinc-700 text-white'
+                  : 'bg-tarjeta border-transparent text-zinc-400 hover:text-white')
               }
             >
               {opcion} <span className="opacity-70">{porFiltro[opcion].length}</span>
@@ -224,7 +224,7 @@ function MisSolicitudes({
           <motion.button
             {...toque}
             onClick={() => setMostrarFormulario(!mostrarFormulario)}
-            className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 rounded-full bg-primario hover:bg-red-700 transition-colors"
+            className="flex items-center gap-1.5 text-xs font-semibold px-3.5 py-1.5 rounded-full bg-primario hover:bg-red-700 transition-colors"
           >
             <motion.span animate={{ rotate: mostrarFormulario ? 45 : 0 }} className="flex">
               <Plus size={14} />
@@ -242,7 +242,7 @@ function MisSolicitudes({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.18 }}
-            className="relative z-10 bg-tarjeta border border-borde rounded-xl p-4 grid md:grid-cols-2 gap-3 mt-4"
+            className="relative z-10 bg-tarjeta rounded-xl p-4 grid md:grid-cols-2 gap-3 mt-4"
           >
             <div>
               <SelectorMateria catalogo={catalogo} value={materia} onChange={setMateria} className={claseCampo} />
@@ -349,7 +349,7 @@ function MisSolicitudes({
       </AnimatePresence>
 
       {visibles.length === 0 && (
-        <p className="text-sm text-zinc-500 bg-tarjeta border border-dashed border-borde rounded-xl p-5 mt-4">
+        <p className="text-sm text-zinc-400 bg-tarjeta border border-dashed border-borde rounded-xl p-5 mt-4">
           {mias.length === 0
             ? 'Aún no has pedido ninguna asesoría. Usa «Nueva solicitud» para pedir la primera.'
             : 'No tienes solicitudes en esta categoría.'}
@@ -366,11 +366,11 @@ function MisSolicitudes({
 
             const propuesta = esPropuesta(solicitud) ? solicitud.propuesta : null
 
-            let estado = 'PENDIENTE'
-            if (realizada) estado = 'ATENDIDA'
-            else if (sesion) estado = 'AGENDADA'
-            else if (propuesta) estado = 'POR CONFIRMAR'
-            else if (solicitud.aceptada) estado = 'ACEPTADA'
+            let estado = 'Pendiente'
+            if (realizada) estado = 'Atendida'
+            else if (sesion) estado = 'Agendada'
+            else if (propuesta) estado = 'Por confirmar'
+            else if (solicitud.aceptada) estado = 'Aceptada'
 
             return (
               <CajaClicable
@@ -382,8 +382,7 @@ function MisSolicitudes({
                 exit="salida"
                 onClick={sesion ? () => abrirDetalle(sesion.id) : undefined}
                 className={
-                  'bg-tarjeta border border-borde border-l-4 rounded-xl p-5 ' +
-                  (propuesta ? 'border-l-amber-500' : solicitud.aceptada ? 'border-l-emerald-500' : 'border-l-zinc-600')
+                  'bg-tarjeta rounded-xl p-5'
                 }
               >
                 <div className="flex items-start justify-between gap-4">
@@ -396,41 +395,41 @@ function MisSolicitudes({
                       >
                         {estado}
                       </span>
-                      {urgente && <span className={insignias.urgente}>URGENTE</span>}
-                      <span className="flex items-center gap-1.5 text-xs text-zinc-500">
+                      {urgente && <span className={insignias.urgente}>Urgente</span>}
+                      <span className="flex items-center gap-1.5 text-xs text-zinc-400">
                         <CalendarDays size={13} />
                         {fechaCorta(solicitud.creada)} · {hace(solicitud.creada)}
                       </span>
                     </div>
 
-                    <h3 className="text-lg font-bold mt-3">{solicitud.materia}</h3>
+                    <h3 className="text-lg font-semibold mt-3">{solicitud.materia}</h3>
                     <p className="text-sm text-zinc-400 mt-1">{solicitud.tema}</p>
 
                     <div className="flex flex-wrap gap-2 mt-3.5">
                       <span className={claseDato}>
-                        <Clock size={13} className="text-acento" />
+                        <Clock size={13} className="text-zinc-400" />
                         {solicitud.urgencia}
                       </span>
                       <span className={claseDato}>
-                        <Users size={13} className="text-acento" />
+                        <Users size={13} className="text-zinc-400" />
                         {solicitud.companeros > 0 ? 'Grupal · +' + solicitud.companeros : 'Individual'}
                       </span>
                       {solicitud.sugeridaFecha && !sesion && (
                         <span className={claseDato}>
-                          <CalendarClock size={13} className="text-acento" />
+                          <CalendarClock size={13} className="text-zinc-400" />
                           Sugeriste: {fechaCorta(solicitud.sugeridaFecha)}, {solicitud.sugeridaHorario}
                         </span>
                       )}
                       {solicitud.mentor && (
                         <span className={claseDato}>
-                          <UserRound size={13} className="text-acento" />
+                          <UserRound size={13} className="text-zinc-400" />
                           {solicitud.mentor}
                         </span>
                       )}
                       {cantidad > 0 && (
                         <button
                           onClick={() => verEnBanco(solicitud.materia)}
-                          className="flex items-center gap-1.5 text-xs font-semibold text-acento bg-primario/10 border border-primario/30 hover:bg-primario/20 rounded-lg px-2.5 py-1.5 transition-colors"
+                          className="flex items-center gap-1.5 text-xs text-acento hover:underline"
                         >
                           {cantidad} {cantidad === 1 ? 'asesoría disponible' : 'asesorías disponibles'}
                           <ArrowRight size={12} />
@@ -442,14 +441,14 @@ function MisSolicitudes({
                   <button
                     onClick={() => eliminar(solicitud, sesion)}
                     title="Eliminar solicitud"
-                    className="shrink-0 p-2.5 rounded-lg bg-primario/5 border border-primario/20 text-zinc-400 hover:text-acento hover:border-primario/60 transition-colors"
+                    className="shrink-0 p-2 rounded-lg text-zinc-400 hover:text-acento hover:bg-zinc-800 transition-colors"
                   >
                     <Trash2 size={16} />
                   </button>
                 </div>
 
                 {propuesta && (
-                  <div className="mt-4 bg-amber-500/5 border border-amber-500/30 rounded-xl p-4">
+                  <div className="mt-4 bg-amber-500/5 rounded-xl p-4">
                     <div className="flex items-start gap-3">
                       <div className="shrink-0 size-10 rounded-full bg-amber-500/15 text-amber-400 flex items-center justify-center">
                         <CalendarClock size={18} />
@@ -504,7 +503,7 @@ function MisSolicitudes({
                           </button>
                           <motion.button
                             {...toque}
-                            className="text-xs font-bold border border-primario/50 text-acento hover:bg-primario/10 rounded-lg px-3.5 py-2"
+                            className="text-xs font-semibold border border-primario/50 text-acento hover:bg-primario/10 rounded-lg px-3.5 py-2"
                           >
                             Rechazar propuesta
                           </motion.button>
@@ -521,7 +520,7 @@ function MisSolicitudes({
                         <motion.button
                           {...toque}
                           onClick={() => responderPropuesta(solicitud.id, true)}
-                          className="text-xs font-bold bg-primario hover:bg-red-700 rounded-lg px-3.5 py-2"
+                          className="text-xs font-semibold bg-primario hover:bg-red-700 rounded-lg px-3.5 py-2"
                         >
                           Aceptar horario
                         </motion.button>
@@ -555,7 +554,7 @@ function MisSolicitudes({
                     {sesion && (
                       <button
                         onClick={() => abrirDetalle(sesion.id)}
-                        className="shrink-0 text-xs font-bold bg-primario hover:bg-red-700 rounded-lg px-3.5 py-2 transition-colors"
+                        className="shrink-0 text-xs font-semibold bg-primario hover:bg-red-700 rounded-lg px-3.5 py-2 transition-colors"
                       >
                         Ver detalle
                       </button>
@@ -566,15 +565,15 @@ function MisSolicitudes({
                 {sesion?.pasada && (
                   <div className="mt-4 grid sm:grid-cols-2 gap-4">
                     <div className="bg-fondo border border-borde rounded-xl p-3">
-                      <p className="text-xs font-semibold text-zinc-500 mb-1.5">RETROALIMENTACIÓN DEL MENTOR</p>
+                      <p className="text-xs font-semibold text-zinc-400 mb-1.5">Retroalimentación del mentor</p>
                       {sesion.resumen ? (
                         <p className="text-xs text-zinc-300">{sesion.resumen}</p>
                       ) : (
-                        <p className="text-xs text-zinc-500">El mentor aún no deja retroalimentación.</p>
+                        <p className="text-xs text-zinc-400">El mentor aún no deja retroalimentación.</p>
                       )}
                     </div>
                     <div className="bg-fondo border border-borde rounded-xl p-3">
-                      <p className="text-xs font-semibold text-zinc-500 mb-1.5">TU VALORACIÓN</p>
+                      <p className="text-xs font-semibold text-zinc-400 mb-1.5">Tu valoración</p>
                       <Valoracion asesoria={sesion} valorar={valorar} />
                     </div>
                   </div>

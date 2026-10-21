@@ -30,10 +30,10 @@ function decimal(valor) {
 
 function Indicador({ etiqueta, valor, detalle }) {
   return (
-    <motion.div variants={item} className="bg-tarjeta border border-borde rounded-2xl p-5">
-      <p className="text-xs font-semibold tracking-wider text-zinc-400">{etiqueta}</p>
-      <p className="text-3xl font-bold mt-3">{valor}</p>
-      <p className="text-xs text-zinc-500 mt-2">{detalle}</p>
+    <motion.div variants={item} className="bg-tarjeta rounded-2xl p-5">
+      <p className="text-xs text-zinc-400">{etiqueta}</p>
+      <p className="text-3xl font-semibold mt-3">{valor}</p>
+      <p className="text-xs text-zinc-400 mt-2">{detalle}</p>
     </motion.div>
   )
 }
@@ -105,7 +105,7 @@ function Reportes({ yo, api }) {
     <div className="max-w-6xl">
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Reportes</h1>
+          <h1 className="text-2xl font-semibold">Reportes</h1>
         </div>
         <motion.button
           {...toque}
@@ -120,26 +120,39 @@ function Reportes({ yo, api }) {
 
       <ImpactoPanel api={api} programa={esCoordinador ? '' : programa} />
 
-      <h2 className="text-lg font-bold mt-10">Uso de la plataforma</h2>
-      <div className="bg-tarjeta border border-borde rounded-2xl p-4 mt-4">
+      <h2 className="text-lg font-semibold mt-10">Uso de la plataforma</h2>
+      <div className="bg-tarjeta rounded-2xl p-4 mt-4">
         <div className="flex flex-wrap items-center gap-2">
           {periodos.map((opcion) => (
             <button
               key={opcion.id}
               onClick={() => elegirPeriodo(opcion.id)}
               className={
-                'text-xs font-bold px-3.5 py-1.5 rounded-full border transition-colors ' +
+                'text-xs font-semibold px-3.5 py-1.5 rounded-full border transition-colors ' +
                 (periodo === opcion.id
-                  ? 'bg-acento border-acento text-white'
-                  : 'bg-fondo border-borde text-zinc-400 hover:text-white')
+                  ? 'bg-zinc-700 border-zinc-700 text-white'
+                  : 'bg-tarjeta border-transparent text-zinc-400 hover:text-white')
               }
             >
               {opcion.texto}
             </button>
           ))}
+          <button
+            onClick={() => setPeriodo('personalizado')}
+            className={
+              'text-xs font-semibold px-3.5 py-1.5 rounded-full border transition-colors ' +
+              (periodo === 'personalizado'
+                ? 'bg-zinc-700 border-zinc-700 text-white'
+                : 'bg-tarjeta border-transparent text-zinc-400 hover:text-white')
+            }
+          >
+            Personalizado
+          </button>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 mt-3">
+          {periodo === 'personalizado' && (
+            <>
           <label className="flex items-center gap-2 text-xs text-zinc-400">
             Desde
             <input
@@ -166,6 +179,8 @@ function Reportes({ yo, api }) {
               className={claseCampo}
             />
           </label>
+            </>
+          )}
 
           {!esCoordinador && (
             <select value={programa} onChange={(e) => setPrograma(e.target.value)} className={claseCampo}>
@@ -182,7 +197,7 @@ function Reportes({ yo, api }) {
         <p className="text-sm text-acento bg-primario/10 border border-primario/30 rounded-xl p-4 mt-4">{error}</p>
       )}
 
-      {cargando && !reporte && <p className="text-sm text-zinc-500 mt-6">Calculando el informe...</p>}
+      {cargando && !reporte && <p className="text-sm text-zinc-400 mt-6">Calculando el informe...</p>}
 
       {t && (
         <>
@@ -194,28 +209,28 @@ function Reportes({ yo, api }) {
             className="grid grid-cols-2 lg:grid-cols-3 gap-4 mt-6"
           >
             <Indicador
-              etiqueta="ASESORÍAS REALIZADAS"
+              etiqueta="Asesorías realizadas"
               valor={t.realizadas}
               detalle={t.programadas + ' programadas · ' + t.individuales + ' individuales, ' + t.grupales + ' grupales'}
             />
             <Indicador
-              etiqueta="INSCRIPCIONES"
+              etiqueta="Inscripciones"
               valor={t.inscritos}
               detalle={t.estudiantesUnicos + ' estudiantes distintos'}
             />
             <Indicador
-              etiqueta="ASISTENCIA"
+              etiqueta="Asistencia"
               valor={porcentaje(t.tasaAsistencia)}
               detalle={t.asistieron + ' asistieron · ' + t.noAsistieron + ' no · ' + t.sinRegistrar + ' sin registrar'}
             />
-            <Indicador etiqueta="HORAS IMPARTIDAS" valor={t.horas.toFixed(1)} detalle="Suma de sesiones realizadas" />
+            <Indicador etiqueta="Horas impartidas" valor={t.horas.toFixed(1)} detalle="Suma de sesiones realizadas" />
             <Indicador
-              etiqueta="VALORACIÓN PROMEDIO"
+              etiqueta="Valoración promedio"
               valor={decimal(t.valoracion) + (t.valoracion === null ? '' : ' / 5')}
               detalle={t.resenas + ' reseñas'}
             />
             <Indicador
-              etiqueta="SOLICITUDES RECIBIDAS"
+              etiqueta="Solicitudes recibidas"
               valor={t.solicitudes}
               detalle={t.aceptadas + ' aceptadas por un mentor'}
             />
@@ -223,17 +238,17 @@ function Reportes({ yo, api }) {
 
           {reporte.programas && !esCoordinador && (
             <section className="mt-10">
-              <h2 className="text-lg font-bold mb-3">Por programa</h2>
-              <div className="bg-tarjeta border border-borde rounded-2xl overflow-x-auto">
+              <h2 className="text-lg font-semibold mb-3">Por programa</h2>
+              <div className="bg-tarjeta rounded-2xl overflow-x-auto">
                 <table className="w-full text-left text-sm">
-                  <thead className="text-[11px] text-zinc-400 tracking-wider border-b border-borde">
+                  <thead className="text-xs text-zinc-400 border-b border-borde">
                     <tr>
-                      <th className="p-3 font-semibold">PROGRAMA</th>
-                      <th className="p-3 font-semibold text-center">MATERIAS CON ACTIVIDAD</th>
-                      <th className="p-3 font-semibold text-center">ASESORÍAS</th>
-                      <th className="p-3 font-semibold text-center">INSCRIPCIONES</th>
-                      <th className="p-3 font-semibold text-center">ASISTENCIA</th>
-                      <th className="p-3 font-semibold text-center">SOLICITUDES</th>
+                      <th className="p-3 font-semibold">Programa</th>
+                      <th className="p-3 font-semibold text-center">Materias con actividad</th>
+                      <th className="p-3 font-semibold text-center">Asesorías</th>
+                      <th className="p-3 font-semibold text-center">Inscripciones</th>
+                      <th className="p-3 font-semibold text-center">Asistencia</th>
+                      <th className="p-3 font-semibold text-center">Solicitudes</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -261,9 +276,9 @@ function Reportes({ yo, api }) {
 
           <section className="mt-10">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-              <h2 className="text-lg font-bold">
+              <h2 className="text-lg font-semibold">
                 Por materia
-                {programaActual && <span className="text-sm font-normal text-zinc-500 ml-3">{programaActual}</span>}
+                {programaActual && <span className="text-sm font-normal text-zinc-400 ml-3">{programaActual}</span>}
               </h2>
               <div className="flex flex-wrap items-center gap-4">
                 <label className="flex items-center gap-2 text-xs text-zinc-400 cursor-pointer">
@@ -276,23 +291,23 @@ function Reportes({ yo, api }) {
                     value={busqueda}
                     onChange={(e) => setBusqueda(e.target.value)}
                     placeholder="Buscar materia..."
-                    className="bg-transparent py-1.5 text-sm outline-none placeholder:text-zinc-500 w-44"
+                    className="bg-transparent py-1.5 text-sm outline-none placeholder:text-zinc-400 w-44"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="bg-tarjeta border border-borde rounded-2xl overflow-x-auto">
+            <div className="bg-tarjeta rounded-2xl overflow-x-auto">
               <table className="w-full text-left text-sm">
-                <thead className="text-[11px] text-zinc-400 tracking-wider border-b border-borde">
+                <thead className="text-xs text-zinc-400 border-b border-borde">
                   <tr>
-                    <th className="p-3 font-semibold">MATERIA</th>
-                    <th className="p-3 font-semibold w-48">ASESORÍAS REALIZADAS</th>
-                    <th className="p-3 font-semibold text-center">INSCRIPCIONES</th>
-                    <th className="p-3 font-semibold text-center">ASISTIERON</th>
-                    <th className="p-3 font-semibold text-center">% ASISTENCIA</th>
-                    <th className="p-3 font-semibold text-center">VALORACIÓN</th>
-                    <th className="p-3 font-semibold text-center">SOLICITUDES</th>
+                    <th className="p-3 font-semibold">Materia</th>
+                    <th className="p-3 font-semibold w-48">Asesorías realizadas</th>
+                    <th className="p-3 font-semibold text-center">Inscripciones</th>
+                    <th className="p-3 font-semibold text-center">Asistieron</th>
+                    <th className="p-3 font-semibold text-center">% asistencia</th>
+                    <th className="p-3 font-semibold text-center">Valoración</th>
+                    <th className="p-3 font-semibold text-center">Solicitudes</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -304,7 +319,7 @@ function Reportes({ yo, api }) {
                         <td className="p-3">
                           <p className="font-medium">{fila.materia}</p>
                           {!programaActual && (
-                            <p className="text-xs text-zinc-500 mt-0.5">
+                            <p className="text-xs text-zinc-400 mt-0.5">
                               {fila.programas.length > 0 ? fila.programas.join(' · ') : 'Sin catalogar'}
                             </p>
                           )}
@@ -320,14 +335,14 @@ function Reportes({ yo, api }) {
                             </div>
                           </div>
                           {fila.programadas > 0 && (
-                            <p className="text-[11px] text-zinc-500 mt-1">+{fila.programadas} programadas</p>
+                            <p className="text-[11px] text-zinc-400 mt-1">+{fila.programadas} programadas</p>
                           )}
                         </td>
                         <td className="p-3 text-center">{fila.inscritos}</td>
                         <td className="p-3 text-center">
                           {fila.asistieron}
                           {fila.sinRegistrar > 0 && (
-                            <span className="block text-[11px] text-zinc-500">{fila.sinRegistrar} sin registrar</span>
+                            <span className="block text-[11px] text-zinc-400">{fila.sinRegistrar} sin registrar</span>
                           )}
                         </td>
                         <td className="p-3 text-center">{porcentaje(fila.tasaAsistencia)}</td>
@@ -340,7 +355,7 @@ function Reportes({ yo, api }) {
               </table>
 
               {filas.length === 0 && (
-                <p className="text-sm text-zinc-500 p-5">No hay materias que coincidan con el filtro.</p>
+                <p className="text-sm text-zinc-400 p-5">No hay materias que coincidan con el filtro.</p>
               )}
             </div>
           </section>

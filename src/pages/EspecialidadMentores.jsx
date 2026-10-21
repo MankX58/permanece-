@@ -43,17 +43,17 @@ function EspecialidadMentores({ yo, mentores, catalogo, asignar, quitar }) {
 
   return (
     <div className="max-w-4xl">
-      <h1 className="text-2xl font-bold">Mentores y materias</h1>
+      <h1 className="text-2xl font-semibold">Mentores y materias</h1>
 
       <div className="flex flex-wrap items-center gap-3 mt-6">
         <div className="flex-1 min-w-48 flex items-center gap-2 border border-borde rounded-full px-3.5 focus-within:border-acento transition-colors">
-          <Search size={15} className="text-zinc-500" />
+          <Search size={15} className="text-zinc-400" />
           <input
             type="text"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             placeholder="Buscar..."
-            className="w-full bg-transparent py-1.5 text-sm outline-none placeholder:text-zinc-500"
+            className="w-full bg-transparent py-1.5 text-sm outline-none placeholder:text-zinc-400"
           />
         </div>
         <div className="flex gap-1 bg-tarjeta border border-borde rounded-full p-1">
@@ -73,7 +73,7 @@ function EspecialidadMentores({ yo, mentores, catalogo, asignar, quitar }) {
                   <motion.span
                     layoutId="filtro-mentores"
                     transition={{ type: 'spring', stiffness: 420, damping: 32 }}
-                    className="absolute inset-0 bg-primario rounded-full"
+                    className="absolute inset-0 bg-zinc-700 rounded-full"
                   />
                 )}
                 <span className="relative">
@@ -89,9 +89,9 @@ function EspecialidadMentores({ yo, mentores, catalogo, asignar, quitar }) {
         <p className="text-sm text-acento mt-6">Aún no tienes un programa asignado.</p>
       )}
       {mentores.length === 0 && (
-        <p className="text-sm text-zinc-500 mt-6">Aún no hay mentores ni docentes.</p>
+        <p className="text-sm text-zinc-400 mt-6">Aún no hay mentores ni docentes.</p>
       )}
-      {mentores.length > 0 && visibles.length === 0 && <p className="text-sm text-zinc-500 mt-6">Sin resultados.</p>}
+      {mentores.length > 0 && visibles.length === 0 && <p className="text-sm text-zinc-400 mt-6">Sin resultados.</p>}
 
       <motion.div variants={lista} initial="oculto" animate="visible" className="space-y-2 mt-5">
         <AnimatePresence mode="popLayout" initial={false}>
@@ -104,31 +104,29 @@ function EspecialidadMentores({ yo, mentores, catalogo, asignar, quitar }) {
                 variants={item}
                 exit="salida"
                 className={
-                  'bg-tarjeta border rounded-xl px-3 py-2.5 transition-colors ' +
-                  (desplegado ? 'relative z-10 border-primario/50' : 'border-borde hover:border-zinc-600')
+                  'bg-tarjeta rounded-xl px-3 py-2.5 transition-colors ' +
+                  (desplegado ? 'relative z-10 bg-zinc-900' : 'hover:bg-zinc-900')
                 }
               >
-                <div className="flex items-center gap-3">
-                  <div className="relative shrink-0 size-9 rounded-full bg-zinc-800 text-xs font-bold flex items-center justify-center">
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
+                  <div className="relative shrink-0 size-9 rounded-full bg-zinc-800 text-xs font-semibold flex items-center justify-center">
                     {iniciales(persona.nombre)}
                     {persona.materias.length === 0 && (
-                      <motion.span
-                        animate={{ scale: [1, 1.35, 1] }}
-                        transition={{ duration: 1.6, repeat: Infinity }}
+                      <span
                         title="Sin materias: no puede atender"
                         className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-acento ring-2 ring-tarjeta"
                       />
                     )}
                   </div>
 
-                  <div className="w-40 shrink-0 min-w-0">
+                  <div className="flex-1 sm:flex-none sm:w-40 min-w-0">
                     <p className="text-sm font-semibold truncate">{persona.nombre}</p>
-                    <p className="text-[10px] font-bold tracking-wider text-zinc-500">
-                      {persona.rol === 'docente' ? 'DOCENTE' : 'MENTOR'}
+                    <p className="text-[11px] text-zinc-400">
+                      {persona.rol === 'docente' ? 'Docente' : 'Mentor'}
                     </p>
                   </div>
 
-                  <div className="flex-1 min-w-0 flex flex-wrap items-center gap-1.5">
+                  <div className="order-last w-full sm:order-none sm:w-auto sm:flex-1 min-w-0 flex flex-wrap items-center gap-1.5">
                     <AnimatePresence initial={false}>
                       {persona.materias.map((materia) => {
                         const propia = puedeQuitar(materia)
@@ -145,7 +143,7 @@ function EspecialidadMentores({ yo, mentores, catalogo, asignar, quitar }) {
                               'group flex items-center gap-1 text-xs rounded-full pl-2.5 py-0.5 border ' +
                               (propia
                                 ? 'pr-1 text-zinc-200 bg-fondo border-borde'
-                                : 'pr-2.5 text-zinc-500 border-dashed border-borde')
+                                : 'pr-2.5 text-zinc-400 border-dashed border-borde')
                             }
                           >
                             {materia}
@@ -153,7 +151,7 @@ function EspecialidadMentores({ yo, mentores, catalogo, asignar, quitar }) {
                               <button
                                 onClick={() => quitar(persona.id, materia)}
                                 aria-label={'Quitar ' + materia}
-                                className="p-0.5 rounded-full text-zinc-600 group-hover:text-zinc-300 hover:!text-acento hover:bg-zinc-800 transition-colors"
+                                className="p-0.5 rounded-full text-zinc-500 group-hover:text-zinc-300 hover:!text-acento hover:bg-zinc-800 transition-colors"
                               >
                                 <X size={11} />
                               </button>
@@ -162,7 +160,7 @@ function EspecialidadMentores({ yo, mentores, catalogo, asignar, quitar }) {
                         )
                       })}
                     </AnimatePresence>
-                    {persona.materias.length === 0 && <span className="text-xs text-zinc-600">Sin materias</span>}
+                    {persona.materias.length === 0 && <span className="text-xs text-zinc-500">Sin materias</span>}
                   </div>
 
                   {catalogoPermitido.length > 0 && (

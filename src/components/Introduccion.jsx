@@ -41,7 +41,7 @@ function Introduccion({ rol, nombre, cerrar }) {
               <GraduationCap size={20} />
             </div>
             <div>
-              <p className="text-base font-bold">{contenido.titulo}</p>
+              <p className="text-base font-semibold">{contenido.titulo}</p>
               <p className="text-xs text-zinc-400">
                 {nombre ? nombre.split(' ')[0] + ' · ' : ''}
                 {contenido.subtitulo}
@@ -59,10 +59,10 @@ function Introduccion({ rol, nombre, cerrar }) {
               exit={{ opacity: 0, x: -24 }}
               transition={{ duration: 0.16 }}
             >
-              <p className="text-[11px] font-bold tracking-wider text-acento">
+              <p className="text-[11px] font-semibold tracking-wider text-acento">
                 PASO {paso + 1} DE {contenido.pasos.length}
               </p>
-              <h2 className="text-xl font-bold mt-1.5">{actual.titulo}</h2>
+              <h2 className="text-xl font-semibold mt-1.5">{actual.titulo}</h2>
               <p className="text-sm text-zinc-300 mt-3">{actual.texto}</p>
               <ul className="mt-4 space-y-2.5">
                 {actual.puntos.map((punto) => (
@@ -93,7 +93,7 @@ function Introduccion({ rol, nombre, cerrar }) {
 
           <div className="flex items-center gap-4">
             {!ultimo && (
-              <button onClick={cerrar} className="text-xs font-medium text-zinc-500 hover:text-white transition-colors">
+              <button onClick={cerrar} className="text-xs font-medium text-zinc-400 hover:text-white transition-colors">
                 Omitir
               </button>
             )}

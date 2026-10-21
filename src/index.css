@@ -6,8 +6,8 @@
 @theme {
   --font-sans: "Inter", sans-serif;
   --color-fondo: #0a0a0b;
-  --color-tarjeta: #18181a;
-  --color-borde: #2a2a2d;
+  --color-tarjeta: #151517;
+  --color-borde: #242427;
   --color-primario: #dc2626;
   --color-acento: #f43f3f;
 }
@@ -25,5 +25,25 @@
 
 body {
   background-color: var(--color-fondo);
-  color: white;
+  color: #f4f4f5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Lo que el navegador dibuja por su cuenta también sigue la paleta */
+::selection {
+  background: rgb(220 38 38 / 0.35);
+}
+
+:focus-visible {
+  outline: 2px solid rgb(244 63 63 / 0.7);
+  outline-offset: 2px;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2f2f33 transparent;
+}
+
+table {
+  font-variant-numeric: tabular-nums;
 }

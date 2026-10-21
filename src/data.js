@@ -311,32 +311,32 @@ export const preguntas = [
   {
     id: 1,
     pregunta: '¿Cómo me inscribo a una asesoría?',
-    respuesta: 'Entra al Banco de Asesorías, busca la sesión que te interesa y presiona Inscribirse. La verás después en Mis Solicitudes.',
+    respuesta: 'Entra al Banco de asesorías, busca la sesión que te interesa y presiona Inscribirse. La verás después en Mis solicitudes.',
   },
   {
     id: 2,
     pregunta: '¿Puedo cancelar una inscripción?',
-    respuesta: 'Sí. Desde Mis Solicitudes o desde la misma tarjeta en el Banco de Asesorías puedes cancelar cuando quieras.',
+    respuesta: 'Sí. Desde Mis solicitudes o desde la misma tarjeta en el Banco de asesorías puedes cancelar cuando quieras.',
   },
   {
     id: 3,
     pregunta: '¿Cómo pido una asesoría que no está en el banco?',
-    respuesta: 'En Mis Solicitudes presiona Nueva solicitud, busca la materia en la lista y describe el tema. Un mentor la tomará desde el Portal de Mentores.',
+    respuesta: 'En Mis solicitudes presiona Nueva solicitud, busca la materia en la lista y describe el tema. Un mentor la tomará desde el Portal de mentores.',
   },
   {
     id: 4,
     pregunta: '¿Cómo ofrezco una asesoría como mentor?',
-    respuesta: 'En el Portal de Mentores presiona Nueva Disponibilidad y completa los datos. Se publicará en el Banco de Asesorías.',
+    respuesta: 'En el Portal de mentores presiona Nueva Disponibilidad y completa los datos. Se publicará en el Banco de asesorías.',
   },
   {
     id: 5,
     pregunta: '¿Cómo valoro una asesoría?',
-    respuesta: 'Cuando la fecha de la asesoría ya pasó aparece en el historial del Panel Principal. Ahí eliges las estrellas, escribes un comentario y guardas.',
+    respuesta: 'Cuando la fecha de la asesoría ya pasó aparece en el historial del Panel principal. Ahí eliges las estrellas, escribes un comentario y guardas.',
   },
   {
     id: 6,
     pregunta: '¿Dónde veo la fecha y el enlace de mi asesoría?',
-    respuesta: 'En Mis Solicitudes, en Próximas sesiones. Si es virtual, el mentor puede compartir el enlace el mismo día de la reunión y recibirás un aviso cuando lo agregue.',
+    respuesta: 'En Mis solicitudes, en Próximas sesiones. Si es virtual, el mentor puede compartir el enlace el mismo día de la reunión y recibirás un aviso cuando lo agregue.',
   },
   {
     id: 7,
@@ -351,17 +351,17 @@ export const preguntas = [
   {
     id: 12,
     pregunta: '¿Por qué solo veo las materias de mi carrera al pedir una asesoría?',
-    respuesta: 'Al entrar por primera vez eliges tu carrera, y las solicitudes se limitan a las materias de su plan. Si elegiste mal, pídele al administrador que la corrija. En el Banco de Asesorías puedes seguir inscribiéndote en sesiones de cualquier materia.',
+    respuesta: 'Al entrar por primera vez eliges tu carrera, y las solicitudes se limitan a las materias de su plan. Si elegiste mal, pídele al administrador que la corrija. En el Banco de asesorías puedes seguir inscribiéndote en sesiones de cualquier materia.',
   },
   {
     id: 10,
     pregunta: '¿Cómo se acuerda el horario de una asesoría que pedí?',
-    respuesta: 'Al pedirla sugieres el día y la hora. El mentor puede aceptarlo (queda agendada) o proponerte otro horario. La propuesta aparece en Mis Solicitudes como «Por confirmar»: si la aceptas queda agendada; si no te sirve, la rechazas (puedes sugerir otro horario) y la solicitud vuelve a estar disponible para otros mentores.',
+    respuesta: 'Al pedirla sugieres el día y la hora. El mentor puede aceptarlo (queda agendada) o proponerte otro horario. La propuesta aparece en Mis solicitudes como «Por confirmar»: si la aceptas queda agendada; si no te sirve, la rechazas (puedes sugerir otro horario) y la solicitud vuelve a estar disponible para otros mentores.',
   },
   {
     id: 11,
     pregunta: 'Soy mentor o docente: ¿por qué solo veo algunas solicitudes?',
-    respuesta: 'Solo ves, aceptas y publicas asesorías de las materias que te asignó el coordinador o el administrador (si eres docente, las que dictas). Si no tienes ninguna, no puedes atender: pídeselas a tu coordinador. Tus materias aparecen en el Portal de Mentores.',
+    respuesta: 'Solo ves, aceptas y publicas asesorías de las materias que te asignó el coordinador o el administrador (si eres docente, las que dictas). Si no tienes ninguna, no puedes atender: pídeselas a tu coordinador. Tus materias aparecen en el Portal de mentores.',
   },
   {
     id: 9,
@@ -371,6 +371,6 @@ export const preguntas = [
   {
     id: 13,
     pregunta: '¿Puedo compartir con otros estudiantes la asesoría que pido?',
-    respuesta: 'Sí. Al pedirla eliges con cuántos compañeros más estarías dispuesto a recibirla. Si eliges «Solo yo» es individual; si no, cuando un mentor la agenda aparece en el Banco de Asesorías con los cupos que quedan para que otros se inscriban.',
+    respuesta: 'Sí. Al pedirla eliges con cuántos compañeros más estarías dispuesto a recibirla. Si eliges «Solo yo» es individual; si no, cuando un mentor la agenda aparece en el Banco de asesorías con los cupos que quedan para que otros se inscriban.',
   },
 ]

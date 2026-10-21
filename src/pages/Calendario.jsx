@@ -50,12 +50,12 @@ function Calendario({ asesorias, abrirDetalle }) {
 
   return (
     <div className="max-w-5xl">
-      <h1 className="text-2xl font-bold">Calendario</h1>
+      <h1 className="text-2xl font-semibold">Calendario</h1>
 
       <div className="flex items-center justify-between gap-4 mt-6">
-        <h2 className="text-lg font-bold capitalize">
+        <h2 className="text-lg font-semibold first-letter:uppercase">
           {nombreMes}
-          <span className="text-sm font-normal text-zinc-500 ml-3">
+          <span className="text-sm font-normal text-zinc-400 ml-3">
             {sesionesDelMes} {sesionesDelMes === 1 ? 'sesión' : 'sesiones'}
           </span>
         </h2>
@@ -85,7 +85,7 @@ function Calendario({ asesorias, abrirDetalle }) {
 
       <div className="grid grid-cols-7 mt-4 border-t border-l border-borde rounded-tl-xl">
         {diasSemana.map((dia) => (
-          <p key={dia} className="py-2 text-center text-xs font-semibold text-zinc-500 border-r border-b border-borde">
+          <p key={dia} className="py-2 text-center text-xs font-semibold text-zinc-400 border-r border-b border-borde">
             {dia}
           </p>
         ))}
@@ -129,7 +129,7 @@ function Calendario({ asesorias, abrirDetalle }) {
                     {asesoria.horario.slice(0, 5)} {asesoria.materia}
                   </span>
                 ))}
-                {sesiones.length > 2 && <span className="text-[10px] text-zinc-500 px-1.5">+{sesiones.length - 2} más</span>}
+                {sesiones.length > 2 && <span className="text-[10px] text-zinc-400 px-1.5">+{sesiones.length - 2} más</span>}
               </span>
               {sesiones.length > 0 && (
                 <span className="sm:hidden flex gap-1 mt-auto">
@@ -146,9 +146,9 @@ function Calendario({ asesorias, abrirDetalle }) {
         })}
       </div>
 
-      <h3 className="text-sm font-bold mt-8 mb-3">{fechaLarga(seleccionado)}</h3>
+      <h3 className="text-sm font-semibold mt-8 mb-3">{fechaLarga(seleccionado)}</h3>
 
-      {sesionesDelDia.length === 0 && <p className="text-sm text-zinc-500">No tienes asesorías este día.</p>}
+      {sesionesDelDia.length === 0 && <p className="text-sm text-zinc-400">No tienes asesorías este día.</p>}
 
       <div className="space-y-3">
         <AnimatePresence mode="popLayout">
@@ -162,13 +162,13 @@ function Calendario({ asesorias, abrirDetalle }) {
               exit="salida"
               onClick={() => abrirDetalle(asesoria.id)}
               className={
-                'w-full p-4 flex items-center justify-between gap-4 text-left bg-tarjeta border border-borde border-l-4 rounded-xl hover:border-primario/50 hover:bg-zinc-900/60 transition-colors ' +
-                (asesoria.pasada ? 'border-l-zinc-600' : 'border-l-primario')
+                'w-full p-4 flex items-center justify-between gap-4 text-left bg-tarjeta rounded-xl hover:bg-zinc-800/60 transition-colors ' +
+                (asesoria.pasada ? 'opacity-60' : '')
               }
             >
               <span className="min-w-0">
                 <span className="block text-sm font-medium">{asesoria.materia}</span>
-                <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-500 mt-1">
+                <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-400 mt-1">
                   <span>{asesoria.horario}</span>
                   <span className="flex items-center gap-1.5">
                     {asesoria.virtual ? <Video size={13} /> : <MapPin size={13} />}
@@ -178,7 +178,7 @@ function Calendario({ asesorias, abrirDetalle }) {
                   {asesoria.privada && <span>Individual</span>}
                 </span>
               </span>
-              <span className="text-xs text-zinc-500 shrink-0">
+              <span className="text-xs text-zinc-400 shrink-0">
                 {asesoria.pasada ? 'Realizada' : 'Ver detalle'}
               </span>
             </motion.button>

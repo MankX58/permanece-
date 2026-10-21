@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'motion/react'
-import { GraduationCap, Star, CalendarDays, TrendingUp, Video, Download } from 'lucide-react'
-import { AnimatedCounter } from '../components/arc/animated-counter/animated-counter'
+import { Video, Download } from 'lucide-react'
 import { DonutChart } from '../components/arc/donut-chart/donut-chart'
 import FilaHistorial from '../components/FilaHistorial.jsx'
 import CajaClicable from '../components/CajaClicable.jsx'
@@ -59,77 +58,56 @@ function PanelPrincipal({ asesorias, valorar, setPagina, abrirDetalle, promedios
     URL.revokeObjectURL(enlace.href)
   }
 
-  const claseTarjeta = 'bg-tarjeta border border-borde rounded-2xl p-5'
-  const claseEtiqueta = 'text-xs font-semibold tracking-wider text-zinc-400'
+  const claseTarjeta = 'bg-tarjeta rounded-2xl p-5'
+  const claseEtiqueta = 'text-xs text-zinc-400'
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">Resumen Académico</h1>
+      <h1 className="text-2xl font-semibold">Resumen académico</h1>
 
       <motion.div
         variants={lista}
         initial="oculto"
         animate="visible"
-        className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6"
+        className="grid grid-cols-2 lg:grid-cols-3 gap-4 mt-6"
       >
-        <motion.div variants={item} whileHover={{ y: -4 }} className={claseTarjeta}>
-          <div className="flex items-center gap-3">
-            <div className="bg-primario rounded-full p-2">
-              <GraduationCap size={16} />
-            </div>
-            <p className={claseEtiqueta}>ASESORÍAS TOTALES</p>
-          </div>
-          <div className="mt-4">
-            <AnimatedCounter value={historial.length} animateOnView />
-          </div>
-          <p className="flex items-center gap-1.5 text-sm text-acento font-medium mt-2">
-            <TrendingUp size={16} />+{esteMes.length} este mes
-          </p>
+        <motion.div variants={item} className={claseTarjeta}>
+          <p className={claseEtiqueta}>Asesorías</p>
+          <p className="text-3xl font-semibold mt-3">{historial.length}</p>
+          <p className="text-sm text-zinc-400 mt-1">+{esteMes.length} este mes</p>
         </motion.div>
 
-        <motion.div variants={item} whileHover={{ y: -4 }} className={claseTarjeta}>
-          <div className="flex items-center gap-3">
-            <div className="bg-zinc-800 rounded-full p-2 text-acento">
-              <Star size={16} />
-            </div>
-            <p className={claseEtiqueta}>CALIFICACIÓN PROMEDIO</p>
-          </div>
-          <div className="mt-4">
+        <motion.div variants={item} className={claseTarjeta}>
+          <p className={claseEtiqueta}>Calificación promedio</p>
+          <p className="text-3xl font-semibold mt-3">
             {calificacion ? (
-              <AnimatedCounter value={Number(calificacion)} decimals={1} suffix=" /5" animateOnView />
+              <>
+                {Number(calificacion).toFixed(1)}
+                <span className="text-lg font-normal text-zinc-400"> /5</span>
+              </>
             ) : (
-              <p className="text-3xl font-medium text-zinc-600">—</p>
+              <span className="text-zinc-500">—</span>
             )}
-          </div>
-          <p className="text-sm text-zinc-400 mt-2">Basado en {valoradas.length} valoraciones tuyas</p>
+          </p>
+          <p className="text-sm text-zinc-400 mt-1">Basado en {valoradas.length} valoraciones tuyas</p>
         </motion.div>
 
         <CajaClicable
           variants={item}
-          whileHover={{ y: -4 }}
           onClick={proxima ? () => abrirDetalle(proxima.id) : undefined}
-          className={claseTarjeta + ' border-primario/40'}
+          className={claseTarjeta + ' col-span-2 lg:col-span-1'}
         >
-          <div className="flex items-center gap-3">
-            <motion.div
-              animate={proxima ? { scale: [1, 1.15, 1] } : {}}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="bg-zinc-800 rounded-full p-2 text-acento"
-            >
-              <CalendarDays size={16} />
-            </motion.div>
-            <p className="text-xs font-semibold tracking-wider">PRÓXIMA SESIÓN</p>
-          </div>
+          <p className={claseEtiqueta}>Próxima sesión</p>
 
           {proxima ? (
             <div>
-              <p className="text-lg font-bold mt-3">
+              <p className="text-lg font-semibold mt-3">
                 <button onClick={() => abrirDetalle(proxima.id)} className="text-left hover:underline">
                   {proxima.materia}
                 </button>
               </p>
               <p className="text-sm text-zinc-400">
-                {fechaCorta(proxima.fecha)}, {proxima.horario} - {proxima.lugar}
+                {fechaCorta(proxima.fecha)}, {proxima.horario} · {proxima.lugar}
               </p>
               {proxima.virtual && proxima.enlace ? (
                 <motion.a
@@ -137,13 +115,13 @@ function PanelPrincipal({ asesorias, valorar, setPagina, abrirDetalle, promedios
                   href={proxima.enlace}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-full flex items-center justify-center gap-2 bg-primario hover:bg-red-700 text-sm font-semibold py-2.5 rounded-lg mt-4"
+                  className="w-full flex items-center justify-center gap-2 bg-primario hover:bg-red-700 text-sm font-semibold py-2 rounded-lg mt-4"
                 >
                   <Video size={16} />
-                  Entrar a Sala Virtual
+                  Entrar a la sala virtual
                 </motion.a>
               ) : (
-                <p className="text-center text-xs text-zinc-400 border border-borde rounded-lg py-2.5 mt-4">
+                <p className="text-xs text-zinc-400 mt-3">
                   {proxima.virtual ? 'Sesión virtual sin enlace todavía' : 'Sesión presencial'}
                 </p>
               )}
@@ -154,7 +132,7 @@ function PanelPrincipal({ asesorias, valorar, setPagina, abrirDetalle, promedios
               <motion.button
                 {...toque}
                 onClick={() => setPagina('banco')}
-                className="w-full bg-primario hover:bg-red-700 text-sm font-semibold py-2.5 rounded-lg mt-4"
+                className="w-full bg-primario hover:bg-red-700 text-sm font-semibold py-2 rounded-lg mt-4"
               >
                 Buscar asesorías
               </motion.button>
@@ -168,7 +146,7 @@ function PanelPrincipal({ asesorias, valorar, setPagina, abrirDetalle, promedios
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-8">
         <div className="xl:col-span-2">
           <div className="flex items-center justify-between gap-3 mb-4">
-            <h2 className="text-lg font-bold">Historial de Asesorías</h2>
+            <h2 className="text-base font-semibold">Historial de asesorías</h2>
             <div className="flex gap-2">
               <select
                 value={materia}
@@ -192,18 +170,18 @@ function PanelPrincipal({ asesorias, valorar, setPagina, abrirDetalle, promedios
           </div>
 
           {historial.length === 0 ? (
-            <p className="text-sm text-zinc-500">
+            <p className="text-sm text-zinc-400">
               Aquí aparecerán las asesorías a las que te inscribiste cuando pase su fecha.
             </p>
           ) : (
-            <div className="bg-tarjeta border border-borde rounded-2xl overflow-hidden">
-              <table className="w-full text-left">
-                <thead className="text-xs text-zinc-400 tracking-wider border-b border-borde">
+            <div className="bg-tarjeta rounded-2xl overflow-x-auto">
+              <table className="w-full min-w-[640px] text-left">
+                <thead className="text-xs text-zinc-400 border-b border-borde">
                   <tr>
-                    <th className="p-4 font-semibold">FECHA</th>
-                    <th className="p-4 font-semibold">MATERIA / TUTOR</th>
-                    <th className="p-4 font-semibold">RESUMEN</th>
-                    <th className="p-4 font-semibold">TU VALORACIÓN</th>
+                    <th className="p-4 font-semibold">Fecha</th>
+                    <th className="p-4 font-semibold">Materia y tutor</th>
+                    <th className="p-4 font-semibold">Resumen</th>
+                    <th className="p-4 font-semibold">Tu valoración</th>
                   </tr>
                 </thead>
                 <motion.tbody variants={lista} initial="oculto" animate="visible">
@@ -220,7 +198,7 @@ function PanelPrincipal({ asesorias, valorar, setPagina, abrirDetalle, promedios
             </div>
           )}
 
-          <h2 className="text-lg font-bold mt-8 mb-4">Tus asesorías por materia</h2>
+          <h2 className="text-base font-semibold mt-8 mb-4">Tus asesorías por materia</h2>
           <div className={claseTarjeta}>
             <DonutChart
               label="Asesorías por materia"
@@ -236,27 +214,27 @@ function PanelPrincipal({ asesorias, valorar, setPagina, abrirDetalle, promedios
 
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold">Próximas Sesiones</h2>
+            <h2 className="text-base font-semibold">Próximas sesiones</h2>
             <button
               onClick={() => setPagina('solicitudes')}
-              className="text-xs font-semibold text-acento hover:underline"
+              className="text-xs text-zinc-400 hover:text-white"
             >
               Ver todas
             </button>
           </div>
 
-          {misSesiones.length === 0 && <p className="text-sm text-zinc-500">No tienes sesiones programadas.</p>}
+          {misSesiones.length === 0 && <p className="text-sm text-zinc-400">No tienes sesiones programadas.</p>}
 
           <motion.div variants={lista} initial="oculto" animate="visible" className="space-y-3">
             {misSesiones.map((sesion) => (
               <motion.button
                 key={sesion.id}
                 variants={item}
-                whileHover={{ x: 6 }}
+               
                 onClick={() => abrirDetalle(sesion.id)}
-                className="w-full text-left bg-tarjeta border border-borde border-l-4 border-l-primario rounded-xl p-4 block"
+                className="w-full text-left bg-tarjeta rounded-xl p-4 block"
               >
-                <p className="text-xs font-semibold text-acento">
+                <p className="text-xs text-zinc-400">
                   {fechaCorta(sesion.fecha)}, {sesion.horario}
                 </p>
                 <p className="text-sm font-semibold mt-1">{sesion.materia}</p>

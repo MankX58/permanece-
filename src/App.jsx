@@ -38,6 +38,8 @@ function App() {
   // de carga lo siga mostrando (con la opción de cerrar sesión) hasta que la persona actúe.
   const [errorCarga, setErrorCarga] = useState(null)
   const [verIntroduccion, setVerIntroduccion] = useState(false)
+  // En pantallas pequeñas el menú lateral es un cajón que se abre desde la cabecera.
+  const [menuAbierto, setMenuAbierto] = useState(false)
   const [introVistaLocal, setIntroVistaLocal] = useState(null)
   const inicioHecho = useRef(false)
 
@@ -409,34 +411,39 @@ function App() {
         )}
       </AnimatePresence>
 
-      <div className={'flex h-screen ' + (ocupado ? 'cursor-progress' : '')}>
+      <div className={'flex h-dvh ' + (ocupado ? 'cursor-progress' : '')}>
+        {menuAbierto && (
+          <div className="fixed inset-0 z-30 bg-black/60 lg:hidden" onClick={() => setMenuAbierto(false)} aria-hidden="true" />
+        )}
         <Sidebar
+          abierto={menuAbierto}
           pagina={paginaVisible}
-          setPagina={irA}
+          setPagina={(destino) => {
+            setMenuAbierto(false)
+            irA(destino)
+          }}
           esMentor={esMentor}
           esAdmin={esAdmin}
           esCoordinador={esCoordinador}
         />
         <div className="flex-1 flex flex-col min-w-0">
           <Header
+            abrirMenu={() => setMenuAbierto(true)}
             yo={yo}
             notificaciones={notificaciones}
             marcarLeidas={marcarLeidas}
             borrar={borrarNotificacion}
             abrir={abrirNotificacion}
           />
-          <main className="flex-1 overflow-y-auto p-6 lg:p-8">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={pagina}
-                initial={{ opacity: 0, y: 14, filter: 'blur(6px)' }}
-                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                exit={{ opacity: 0, y: -10, filter: 'blur(6px)' }}
-                transition={{ duration: 0.22 }}
-              >
-                {contenido}
-              </motion.div>
-            </AnimatePresence>
+          <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8">
+            <motion.div
+              key={pagina}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {contenido}
+            </motion.div>
           </main>
         </div>
       </div>
