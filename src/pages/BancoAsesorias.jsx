@@ -2,15 +2,15 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { Search } from 'lucide-react'
 import TarjetaAsesoria from '../components/TarjetaAsesoria.jsx'
-import { areas } from '../data.js'
 import { item } from '../animaciones.js'
 
 const tipos = ['Todos', 'Docente', 'Voluntario']
 
-function BancoAsesorias({ asesorias, inscribir, cancelar, abrirDetalle, busquedaInicial = '' }) {
+function BancoAsesorias({ asesorias, inscribir, cancelar, abrirDetalle, catalogo, carreraInicial = '', busquedaInicial = '' }) {
   const [busqueda, setBusqueda] = useState(busquedaInicial)
   const [tipo, setTipo] = useState('Todos')
-  const [area, setArea] = useState('')
+  // Las asesorías se agrupan por la carrera de su materia (catálogo). El estudiante arranca con la suya.
+  const [carrera, setCarrera] = useState(carreraInicial)
   const [tutor, setTutor] = useState('')
   const [modalidad, setModalidad] = useState('')
 
@@ -26,7 +26,7 @@ function BancoAsesorias({ asesorias, inscribir, cancelar, abrirDetalle, busqueda
     const texto = (asesoria.materia + ' ' + asesoria.descripcion + ' ' + asesoria.tutor).toLowerCase()
     if (!texto.includes(busqueda.toLowerCase())) return false
     if (tipo !== 'Todos' && asesoria.tipo !== tipo) return false
-    if (area !== '' && asesoria.area !== area) return false
+    if (carrera !== '' && !catalogo.find((c) => c.nombre === carrera)?.materias.includes(asesoria.materia)) return false
     if (tutor !== '' && asesoria.tutor !== tutor) return false
     if (modalidad !== '' && (modalidad === 'Virtual') !== asesoria.virtual) return false
     return true
@@ -51,10 +51,10 @@ function BancoAsesorias({ asesorias, inscribir, cancelar, abrirDetalle, busqueda
           />
         </div>
 
-        <select value={area} onChange={(e) => setArea(e.target.value)} className={claseSelect}>
-          <option value="">Área de Estudio</option>
-          {areas.map((opcion) => (
-            <option key={opcion}>{opcion}</option>
+        <select value={carrera} onChange={(e) => setCarrera(e.target.value)} className={claseSelect + ' max-w-60'}>
+          <option value="">Todas las carreras</option>
+          {catalogo.map((opcion) => (
+            <option key={opcion.nombre}>{opcion.nombre}</option>
           ))}
         </select>
 

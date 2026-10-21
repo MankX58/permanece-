@@ -1,7 +1,7 @@
 import express from 'express'
 import { auth } from 'express-oauth2-jwt-bearer'
 import { neon } from '@neondatabase/serverless'
-import { areas, carreras } from '../src/data.js'
+import { carreras } from '../src/data.js'
 import { construirReporte, generarExcel } from './reportes.js'
 import { crearMaterias, ErrorDeMateria } from './materias.js'
 import { crearAgenda, datosSesion, perfilDe, ErrorDeAgenda } from './agenda.js'
@@ -76,7 +76,7 @@ function perfilTutor(req) {
 function buscarAsesorias(usuario) {
   return sql`
     SELECT
-      a.id, a.tutor, a.rol, a.tipo, a.area, a.materia, a.descripcion,
+      a.id, a.tutor, a.rol, a.tipo, a.materia, a.descripcion,
       to_char(a.fecha, 'YYYY-MM-DD') AS fecha,
       a.horario, a.lugar, a.virtual, a.enlace, a.cupos, a.privada,
       CASE WHEN a.tutor_id = ${usuario} OR mia.usuario_id IS NOT NULL THEN a.resumen END AS resumen,
@@ -371,8 +371,8 @@ app.post('/api/asesorias', soloMentores, async (req, res) => {
   }
 
   const cupos = Number(a.cupos)
-  if (!areas.includes(a.area) || !Number.isInteger(cupos) || cupos < 1) {
-    return res.status(400).json({ mensaje: 'Revisa el área y los cupos.' })
+  if (!Number.isInteger(cupos) || cupos < 1) {
+    return res.status(400).json({ mensaje: 'Revisa los cupos.' })
   }
 
   const sesion = datosSesion(a)
@@ -384,8 +384,8 @@ app.post('/api/asesorias', soloMentores, async (req, res) => {
   const { rol, tipo } = perfilTutor(req)
 
   await sql`
-    INSERT INTO asesorias (tutor_id, tutor, rol, tipo, area, materia, descripcion, fecha, horario, lugar, virtual, enlace, cupos)
-    VALUES (${idUsuario(req)}, ${req.usuario.nombre}, ${rol}, ${tipo}, ${a.area}, ${a.materia}, ${a.descripcion}, ${sesion.fecha}, ${sesion.horario}, ${sesion.lugar}, ${sesion.virtual}, ${sesion.enlace}, ${cupos})
+    INSERT INTO asesorias (tutor_id, tutor, rol, tipo, materia, descripcion, fecha, horario, lugar, virtual, enlace, cupos)
+    VALUES (${idUsuario(req)}, ${req.usuario.nombre}, ${rol}, ${tipo}, ${a.materia}, ${a.descripcion}, ${sesion.fecha}, ${sesion.horario}, ${sesion.lugar}, ${sesion.virtual}, ${sesion.enlace}, ${cupos})
   `
 
   // Quienes tenían una solicitud pendiente de esta materia se enteran de que ya hay una sesión.
@@ -611,12 +611,12 @@ app.delete('/api/solicitudes/:id', async (req, res) => {
 })
 
 // El mentor acepta el horario que sugirió el estudiante: queda agendada de una vez.
-// Cuerpo: { area, virtual, lugar, enlace }.
+// Cuerpo: { virtual, lugar, enlace }.
 app.post('/api/solicitudes/:id/aceptar', soloMentores, async (req, res) => {
   await conRegla(res, () => agenda.aceptarSugerencia(req.params.id, req.usuario, req.body))
 })
 
-// El mentor propone otro horario; el estudiante debe aceptarlo. Cuerpo: { area, fecha, horario, virtual, lugar, enlace }.
+// El mentor propone otro horario; el estudiante debe aceptarlo. Cuerpo: { fecha, horario, virtual, lugar, enlace }.
 app.post('/api/solicitudes/:id/proponer', soloMentores, async (req, res) => {
   await conRegla(res, () => agenda.proponer(req.params.id, req.usuario, req.body))
 })

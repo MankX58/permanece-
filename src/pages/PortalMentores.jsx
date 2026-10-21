@@ -21,11 +21,11 @@ import Estrellas from '../components/Estrellas.jsx'
 import SelectorMateria from '../components/SelectorMateria.jsx'
 import CajaClicable from '../components/CajaClicable.jsx'
 import CamposSesion, { sesionVacia, sesionDe, datosDeSesion } from '../components/CamposSesion.jsx'
-import { areas, urgencias } from '../data.js'
+import { urgencias } from '../data.js'
 import { fechaCorta, mesDe, diaDe, horasDe, promedio, hace } from '../fechas.js'
 import { lista, item, toque, desplegar } from '../animaciones.js'
 
-const formularioVacio = { ...sesionVacia, materia: '', descripcion: '', area: areas[0], cupos: 10 }
+const formularioVacio = { ...sesionVacia, materia: '', descripcion: '', cupos: 10 }
 
 const LIMITE_HISTORIAL = 6
 const claseDato = 'flex items-center gap-1.5 text-xs text-zinc-300 bg-fondo border border-borde rounded-lg px-2.5 py-1.5'
@@ -107,15 +107,6 @@ function FormularioRespuesta({ solicitud, valor, cambiar, enviar, cerrar }) {
       }}
       className={claseCaja + ' mt-4 bg-fondo'}
     >
-      <select
-        value={valor.area}
-        onChange={(e) => cambiar('area', e.target.value)}
-        className={claseCampo + ' bg-tarjeta md:col-span-2'}
-      >
-        {areas.map((opcion) => (
-          <option key={opcion}>{opcion}</option>
-        ))}
-      </select>
       <CamposSesion valor={valor} cambiar={cambiar} className={claseCampo + ' bg-tarjeta'} />
       <p className="md:col-span-2 text-xs text-zinc-500">
         {agendaDirecto
@@ -234,7 +225,6 @@ function PortalMentores({
     e.preventDefault()
 
     agregarAsesoria({
-      area: formulario.area,
       materia: formulario.materia,
       descripcion: formulario.descripcion,
       cupos: Number(formulario.cupos),
@@ -251,7 +241,6 @@ function PortalMentores({
     const [inicio, fin] = (solicitud.sugeridaHorario || '').split(' - ')
     setRespondiendo({
       id: solicitud.id,
-      area: areas[0],
       ...sesionVacia,
       fecha: solicitud.sugeridaFecha || '',
       inicio: solicitud.sugeridaFecha ? inicio : '',
@@ -263,12 +252,11 @@ function PortalMentores({
     const sesion = datosDeSesion(respondiendo)
     const bien = agendaDirecto
       ? await aceptarSolicitud(respondiendo.id, {
-          area: respondiendo.area,
           virtual: sesion.virtual,
           lugar: sesion.lugar,
           enlace: sesion.enlace,
         })
-      : await proponerHorario(respondiendo.id, { area: respondiendo.area, ...sesion })
+      : await proponerHorario(respondiendo.id, sesion)
     if (bien) setRespondiendo(null)
   }
 
@@ -363,17 +351,14 @@ function PortalMentores({
             className="relative z-10"
           >
             <form onSubmit={publicar} className={claseCaja + ' mt-6'}>
-              <SelectorMateria
-                catalogo={catalogoPropio}
-                value={formulario.materia}
-                onChange={(materia) => cambiar('materia', materia)}
-                className={claseCampo}
-              />
-              <select value={formulario.area} onChange={(e) => cambiar('area', e.target.value)} className={claseCampo}>
-                {areas.map((opcion) => (
-                  <option key={opcion}>{opcion}</option>
-                ))}
-              </select>
+              <div className="md:col-span-2">
+                <SelectorMateria
+                  catalogo={catalogoPropio}
+                  value={formulario.materia}
+                  onChange={(materia) => cambiar('materia', materia)}
+                  className={claseCampo}
+                />
+              </div>
               {enEspera > 0 && (
                 <p className="md:col-span-2 text-xs text-acento">
                   {enEspera === 1

@@ -1,5 +1,3 @@
-export const areas = ['Matemáticas', 'Física', 'Programación', 'Escritura']
-
 // De la más a la menos urgente.
 export const urgencias = ['Urge esta semana', 'Esta semana', 'Próxima semana']
 

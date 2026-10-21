@@ -258,6 +258,8 @@ function App() {
     contenido = (
       <BancoAsesorias
         asesorias={asesorias}
+        catalogo={catalogo}
+        carreraInicial={yo.rol === 'estudiante' ? yo.carrera || '' : ''}
         inscribir={inscribir}
         cancelar={cancelar}
         busquedaInicial={busquedaBanco}
@@ -381,6 +383,7 @@ function App() {
           <DetalleAsesoria
             key={detalle.id}
             asesoria={detalle}
+            catalogo={catalogo}
             solicitud={solicitudes.find((solicitud) => solicitud.asesoriaId === detalle.id)}
             cerrar={cerrarDetalle}
             inscribir={inscribir}

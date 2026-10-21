@@ -43,6 +43,13 @@ function enlaceCalendario(asesoria) {
 }
 
 // Panel con toda la información de una asesoría. Cambia según quién la mira: su mentor, un inscrito o alguien del banco.
+// A qué carrera(s) pertenece la materia según el catálogo vigente.
+function programaDe(materia, catalogo) {
+  const nombres = catalogo.filter((c) => c.materias.includes(materia)).map((c) => c.nombre)
+  if (nombres.length === 0) return 'Fuera del catálogo'
+  return nombres.length === 1 ? nombres[0] : <span title={nombres.join('\n')}>Común a {nombres.length} carreras</span>
+}
+
 function DetalleAsesoria({
   asesoria,
   solicitud,
@@ -54,6 +61,7 @@ function DetalleAsesoria({
   eliminarAsesoria,
   guardarResumen,
   marcarAsistencia,
+  catalogo = [],
 }) {
   const [enlace, setEnlace] = useState(asesoria.enlace || '')
   const [resumen, setResumen] = useState(asesoria.resumen || '')
@@ -161,7 +169,7 @@ function DetalleAsesoria({
             <Dato etiqueta={asesoria.tipo === 'Docente' ? 'Docente' : 'Mentor'}>
               {asesoria.tutor} <span className="text-zinc-500">· {asesoria.rol}</span>
             </Dato>
-            <Dato etiqueta="Área">{asesoria.area}</Dato>
+            <Dato etiqueta="Programa">{programaDe(asesoria.materia, catalogo)}</Dato>
             {!privada && (
               <Dato etiqueta="Cupos">
                 {asesoria.inscritos}/{asesoria.cupos} inscritos

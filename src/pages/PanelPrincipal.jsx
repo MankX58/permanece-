@@ -20,13 +20,13 @@ function PanelPrincipal({ asesorias, valorar, setPagina, abrirDetalle }) {
   const valoradas = historial.filter((asesoria) => asesoria.miValoracion)
   const calificacion = promedio(valoradas.map((asesoria) => asesoria.miValoracion))
 
-  const porArea = []
+  const porMateria = []
   inscritas.forEach((asesoria) => {
-    const area = porArea.find((parte) => parte.key === asesoria.area)
-    if (area) {
-      area.value += 1
+    const parte = porMateria.find((p) => p.key === asesoria.materia)
+    if (parte) {
+      parte.value += 1
     } else {
-      porArea.push({ key: asesoria.area, label: asesoria.area, value: 1 })
+      porMateria.push({ key: asesoria.materia, label: asesoria.materia, value: 1 })
     }
   })
 
@@ -218,12 +218,12 @@ function PanelPrincipal({ asesorias, valorar, setPagina, abrirDetalle }) {
             </div>
           )}
 
-          <h2 className="text-lg font-bold mt-8 mb-4">Tus asesorías por área</h2>
+          <h2 className="text-lg font-bold mt-8 mb-4">Tus asesorías por materia</h2>
           <div className={claseTarjeta}>
             <DonutChart
-              label="Asesorías por área"
+              label="Asesorías por materia"
               unit="asesorías"
-              data={porArea}
+              data={porMateria}
               size={170}
               thickness={18}
               otherLabel="Otras"

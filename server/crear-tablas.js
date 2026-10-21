@@ -67,6 +67,10 @@ await sql`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS introduccion_vista TEXT`
 // coordina un coordinador, y se conserva aunque cambie el rol.
 await sql`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS carrera TEXT`
 
+// El área (Matemáticas, Física...) ya no se pide: la asesoría se agrupa por su materia y la carrera de esa
+// materia en el catálogo. La columna queda solo por compatibilidad con datos viejos.
+await sql`ALTER TABLE asesorias ALTER COLUMN area DROP NOT NULL`
+
 // Materias que los coordinadores suman a su carrera, aparte del plan oficial de src/data.js.
 // Puede ser una materia que ya se ve en otra carrera (mismo nombre) o una nueva.
 await sql`
@@ -91,7 +95,7 @@ await sql`
 `
 
 // Horario negociado: el estudiante sugiere día y hora; el mentor puede proponer otro (propuesta), que el
-// estudiante acepta o rechaza. propuesta guarda { fecha, horario, virtual, lugar, enlace, area }.
+// estudiante acepta o rechaza. propuesta guarda { fecha, horario, virtual, lugar, enlace }.
 await sql`ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS sugerida_fecha DATE`
 await sql`ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS sugerida_horario TEXT`
 await sql`ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS propuesta JSONB`

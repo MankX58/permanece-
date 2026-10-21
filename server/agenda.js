@@ -1,10 +1,10 @@
-import { areas, urgencias } from '../src/data.js'
+import { urgencias } from '../src/data.js'
 
 // Solicitudes de asesoría y la negociación del horario entre estudiante y mentor.
 //
 // Estados de una solicitud:
 //   disponible   mentor_id NULL. Tiene el horario que sugirió el estudiante.
-//   propuesta    mentor_id = mentor, propuesta = { fecha, horario, virtual, lugar, enlace, area }.
+//   propuesta    mentor_id = mentor, propuesta = { fecha, horario, virtual, lugar, enlace }.
 //                El mentor propuso otro horario; espera que el estudiante acepte o rechace.
 //   agendada     asesoria_id apunta a la sesión individual creada (asesoría privada de un cupo).
 //
@@ -157,10 +157,7 @@ export function crearAgenda(sql, materias) {
     return solicitud
   }
 
-  async function validarMentor(mentor, materia, area, sesion) {
-    if (!areas.includes(area)) {
-      throw new ErrorDeAgenda('Elige el área de la asesoría.')
-    }
+  async function validarMentor(mentor, materia, sesion) {
     if (!(await materias.puedeAtender(mentor, materia))) {
       throw new ErrorDeAgenda('Solo puedes atender las materias que tienes asignadas. Si no tienes ninguna, pídeselas a tu coordinador.')
     }
@@ -169,13 +166,13 @@ export function crearAgenda(sql, materias) {
   }
 
   // Crea la sesión individual (asesoría privada de un cupo), inscribe al estudiante y la liga a la solicitud.
-  async function crearSesion(id, solicitud, tutor, area, sesion) {
+  async function crearSesion(id, solicitud, tutor, sesion) {
     const { rol, tipo } = perfilDe(tutor.rol)
 
     await sql`
       WITH nueva AS (
-        INSERT INTO asesorias (tutor_id, tutor, rol, tipo, area, materia, descripcion, fecha, horario, lugar, virtual, enlace, cupos, privada)
-        VALUES (${tutor.id}, ${tutor.nombre}, ${rol}, ${tipo}, ${area}, ${solicitud.materia}, ${solicitud.tema},
+        INSERT INTO asesorias (tutor_id, tutor, rol, tipo, materia, descripcion, fecha, horario, lugar, virtual, enlace, cupos, privada)
+        VALUES (${tutor.id}, ${tutor.nombre}, ${rol}, ${tipo}, ${solicitud.materia}, ${solicitud.tema},
                 ${sesion.fecha}, ${sesion.horario}, ${sesion.lugar}, ${sesion.virtual}, ${sesion.enlace}, 1, true)
         RETURNING id
       ), inscrito AS (
@@ -196,7 +193,7 @@ export function crearAgenda(sql, materias) {
     }
 
     const sesion = datosSesion({ ...datos, fecha: solicitud.fecha, horario: solicitud.horario })
-    await validarMentor(mentor, solicitud.materia, datos.area, sesion)
+    await validarMentor(mentor, solicitud.materia, sesion)
 
     // Reserva antes de crear la sesión, para que dos mentores no la tomen a la vez.
     const reservada = await sql`
@@ -208,7 +205,7 @@ export function crearAgenda(sql, materias) {
       throw new ErrorDeAgenda('Esa solicitud ya no está disponible.')
     }
 
-    await crearSesion(id, solicitud, mentor, datos.area, sesion)
+    await crearSesion(id, solicitud, mentor, sesion)
     await notificar(
       solicitud.usuario_id,
       mentor.nombre + ' aceptó tu horario y agendó la asesoría de ' + solicitud.materia + ': ' + textoSesion(sesion) + '.'
@@ -219,9 +216,9 @@ export function crearAgenda(sql, materias) {
   async function proponer(id, mentor, datos) {
     const solicitud = await solicitudParaMentor(id, mentor)
     const sesion = datosSesion(datos)
-    await validarMentor(mentor, solicitud.materia, datos.area, sesion)
+    await validarMentor(mentor, solicitud.materia, sesion)
 
-    const propuesta = { ...sesion, area: datos.area }
+    const propuesta = { ...sesion }
     const guardada = await sql`
       UPDATE solicitudes SET mentor_id = ${mentor.id}, propuesta = ${JSON.stringify(propuesta)}::jsonb
       WHERE id = ${id} AND (mentor_id IS NULL OR mentor_id = ${mentor.id}) AND asesoria_id IS NULL AND atendida_en IS NULL
@@ -259,7 +256,7 @@ export function crearAgenda(sql, materias) {
       }
 
       const tutor = { id: solicitud.mentor_id, nombre: solicitud.mentor_nombre, rol: solicitud.mentor_rol }
-      await crearSesion(id, solicitud, tutor, solicitud.propuesta.area, sesion)
+      await crearSesion(id, solicitud, tutor, sesion)
       await notificar(
         solicitud.mentor_id,
         estudiante.nombre + ' aceptó tu propuesta: la asesoría de ' + solicitud.materia + ' quedó agendada para ' +
