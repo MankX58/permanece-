@@ -51,7 +51,6 @@ function Calendario({ asesorias, abrirDetalle }) {
   return (
     <div className="max-w-5xl">
       <h1 className="text-2xl font-bold">Calendario</h1>
-      <p className="text-sm text-zinc-400 mt-1">Tus asesorías programadas y realizadas, en un solo lugar.</p>
 
       <div className="flex items-center justify-between gap-4 mt-6">
         <h2 className="text-lg font-bold capitalize">

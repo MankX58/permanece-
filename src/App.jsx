@@ -270,7 +270,7 @@ function App() {
   const detalle = asesorias.find((asesoria) => asesoria.id === detalleId)
   // Un estudiante sin carrera la elige antes de todo (también los que ya existían). La restricción depende del
   // rol: el estudiante pide asesorías solo de su carrera; los demás roles tienen sus propias reglas.
-  const faltaCarrera = yo.rol === 'estudiante' && !yo.carrera
+  const faltaCarrera = ['estudiante', 'mentor'].includes(yo.rol) && !yo.carrera
   const catalogoParaPedir = yo.rol === 'estudiante' ? catalogo.filter((c) => c.nombre === yo.carrera) : catalogo
   const mostrarIntroduccion =
     !faltaCarrera && (verIntroduccion || (yo.introduccionVista !== yo.rol && introVistaLocal !== yo.rol))

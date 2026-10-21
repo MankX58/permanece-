@@ -10,7 +10,6 @@ function CentroAyuda({ verIntroduccion }) {
   return (
     <div className="max-w-2xl">
       <h1 className="text-2xl font-bold">Centro de Ayuda</h1>
-      <p className="text-sm text-zinc-400 mt-1">Preguntas frecuentes sobre la plataforma.</p>
 
       <button
         onClick={verIntroduccion}

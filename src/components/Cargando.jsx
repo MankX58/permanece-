@@ -57,11 +57,6 @@ function Cargando({ error }) {
         </motion.div>
       )}
 
-      {error && isAuthenticated && (
-        <p className="text-xs text-zinc-500 max-w-sm">
-          Si tu sesión expiró, cierra sesión y vuelve a entrar con tu cuenta.
-        </p>
-      )}
     </div>
   )
 }

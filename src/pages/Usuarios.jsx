@@ -32,10 +32,6 @@ function Usuarios({ yo, usuarios, cambiarRol, cambiarCarrera }) {
   return (
     <div className="max-w-3xl">
       <h1 className="text-2xl font-bold">Usuarios y Roles</h1>
-      <p className="text-sm text-zinc-400 mt-1">
-        Los estudiantes no ven el Portal de Mentores. Mentores y docentes publican asesorías. El coordinador de
-        programa ve solo los reportes del programa que le asignes. Quien entra por primera vez queda como estudiante.
-      </p>
 
       <div className="flex items-center gap-2.5 border border-borde rounded-lg px-3 mt-6 focus-within:border-acento transition-colors">
         <Search size={16} className="text-zinc-400" />
@@ -95,11 +91,11 @@ function Usuarios({ yo, usuarios, cambiarRol, cambiarCarrera }) {
                 <span className="text-xs text-zinc-500 capitalize shrink-0">{usuario.rol} (tú)</span>
               ) : (
                 <div className="flex flex-wrap items-center justify-end gap-2 shrink-0">
-                  {usuario.rol === 'estudiante' && (
+                  {['estudiante', 'mentor', 'docente'].includes(usuario.rol) && (
                     <select
                       value={usuario.carrera || ''}
                       onChange={(e) => cambiarCarrera(usuario.id, e.target.value)}
-                      title="Carrera del estudiante"
+                      title="Carrera"
                       className={
                         'bg-fondo border rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-acento max-w-52 ' +
                         (usuario.carrera ? 'border-borde' : 'border-primario text-acento')

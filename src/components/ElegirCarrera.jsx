@@ -85,8 +85,7 @@ function ElegirCarrera({ nombre, carreras, elegir }) {
           })}
         </div>
 
-        <div className="px-6 py-4 border-t border-borde flex items-center justify-between gap-4">
-          <p className="text-xs text-zinc-500">Después solo el administrador puede cambiarla.</p>
+        <div className="px-6 py-4 border-t border-borde flex items-center justify-end gap-4">
           <motion.button
             {...toque}
             disabled={!elegida || enviando}

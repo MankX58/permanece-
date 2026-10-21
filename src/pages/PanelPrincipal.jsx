@@ -64,7 +64,6 @@ function PanelPrincipal({ asesorias, valorar, setPagina, abrirDetalle }) {
   return (
     <div>
       <h1 className="text-2xl font-bold">Resumen Académico</h1>
-      <p className="text-sm text-zinc-400 mt-1">Tu progreso académico y próximas sesiones programadas.</p>
 
       <motion.div
         variants={lista}

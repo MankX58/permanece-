@@ -155,7 +155,7 @@ app.get('/api/datos', async (req, res) => {
     esAdmin ? buscarUsuarios() : [],
     catalogo(),
     ['mentor', 'docente'].includes(yo.rol) ? materias.asignadasA(yo.id) : null,
-    esCoordinacion ? materias.mentoresConMaterias() : [],
+    esCoordinacion ? materias.mentoresConMaterias(yo.rol === 'coordinador' ? yo.programa || '' : null) : [],
   ])
 
   // materiasAsignadas: lista de materias que el mentor o docente puede atender; null = sin restricción (admin).

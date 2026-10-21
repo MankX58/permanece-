@@ -298,7 +298,6 @@ function DetalleAsesoria({
                       Guardar
                     </motion.button>
                   </div>
-                  <p className="text-xs text-zinc-500 mt-2">Los inscritos reciben un aviso cuando lo agregas.</p>
                 </Seccion>
               )}
 

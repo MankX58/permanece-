@@ -232,29 +232,40 @@ export function crearMaterias(sql) {
   }
 
   // Mentores y docentes con sus materias asignadas, para la pantalla de asignación.
-  async function mentoresConMaterias() {
+  // carrera: null para el admin (todos) o el programa del coordinador (solo quienes son de esa carrera).
+  async function mentoresConMaterias(carrera = null) {
     await asegurarTabla()
     return sql`
       SELECT u.id, u.nombre, u.email, u.rol,
         COALESCE(ARRAY_AGG(mm.materia ORDER BY mm.materia) FILTER (WHERE mm.materia IS NOT NULL), '{}'::text[]) AS materias
       FROM usuarios u
       LEFT JOIN mentor_materias mm ON mm.mentor_id = u.id
-      WHERE u.rol IN ('mentor', 'docente')
+      WHERE u.rol IN ('mentor', 'docente') AND (${carrera}::text IS NULL OR u.carrera = ${carrera})
       GROUP BY u.id
       ORDER BY u.nombre
     `
   }
 
+  // El coordinador (carreraPermitida distinta de null) solo gestiona mentores de su propia carrera.
+  async function validarMentorDelPrograma(mentorId, carreraPermitida) {
+    if (carreraPermitida === null) return
+    const [mentor] = await sql`SELECT carrera FROM usuarios WHERE id = ${mentorId}`
+    if (!mentor || mentor.carrera !== carreraPermitida) {
+      throw new ErrorDeMateria('Solo puedes gestionar mentores de tu programa.')
+    }
+  }
+
   // carreraPermitida: null para el admin (cualquier materia del catálogo) o la carrera del coordinador.
   async function asignar(mentorId, materia, quien, carreraPermitida = null) {
     const vigente = await catalogo()
-    const permitidas = carreraPermitida
-      ? vigente.find((c) => c.nombre === carreraPermitida)?.materias || []
-      : vigente.flatMap((c) => c.materias)
+    const permitidas =
+      carreraPermitida !== null
+        ? vigente.find((c) => c.nombre === carreraPermitida)?.materias || []
+        : vigente.flatMap((c) => c.materias)
 
     if (!permitidas.includes(materia)) {
       throw new ErrorDeMateria(
-        carreraPermitida ? 'Solo puedes asignar materias de ' + carreraPermitida + '.' : 'Elige una materia del catálogo.'
+        carreraPermitida !== null ? 'Solo puedes asignar materias de ' + carreraPermitida + '.' : 'Elige una materia del catálogo.'
       )
     }
 
@@ -262,6 +273,7 @@ export function crearMaterias(sql) {
     if (!mentor || !ROLES_CON_MATERIAS.includes(mentor.rol)) {
       throw new ErrorDeMateria('Solo se asignan materias a mentores y docentes.')
     }
+    await validarMentorDelPrograma(mentorId, carreraPermitida)
 
     const nuevas = await sql`
       INSERT INTO mentor_materias (mentor_id, materia, asignada_por)
@@ -275,11 +287,12 @@ export function crearMaterias(sql) {
   }
 
   async function desasignar(mentorId, materia, carreraPermitida = null) {
-    if (carreraPermitida) {
+    if (carreraPermitida !== null) {
       const delPrograma = (await catalogo()).find((c) => c.nombre === carreraPermitida)?.materias || []
       if (!delPrograma.includes(materia)) {
         throw new ErrorDeMateria('Solo puedes quitar materias de ' + carreraPermitida + '.')
       }
+      await validarMentorDelPrograma(mentorId, carreraPermitida)
     }
 
     await asegurarTabla()

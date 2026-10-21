@@ -44,7 +44,7 @@ function Carreras({ nombres, todas = false }) {
   )
 }
 
-// Formulario para cambiar el nombre. Explica antes de guardar qué va a pasar con las otras carreras y el historial.
+// Formulario para cambiar el nombre de una materia.
 function Renombrar({ materia, carrera, otras, uso, conocidas, puedeEnTodas, fijoEnTodas, guardar, cancelar }) {
   const [texto, setTexto] = useState(materia)
   const [enTodas, setEnTodas] = useState(Boolean(fijoEnTodas))
@@ -52,22 +52,8 @@ function Renombrar({ materia, carrera, otras, uso, conocidas, puedeEnTodas, fijo
   const limpio = texto.replace(/\s+/g, ' ').trim()
   const coincide = conocidas.find((nombre) => nombre !== materia && normalizar(nombre) === normalizar(limpio))
   const compartida = otras.length > 0
-  const conHistorial = !compartida || enTodas
   const valido = limpio.length >= 3 && limpio !== materia
 
-  let explicacion
-  if (conHistorial) {
-    explicacion =
-      'Cambia en ' +
-      (compartida ? 'todas las carreras que la tienen' : carrera) +
-      ' y también en ' +
-      (uso?.asesorias ? plural(uso.asesorias, 'asesoría registrada', 'asesorías registradas') : 'el historial') +
-      ', para no perder la trazabilidad.'
-  } else {
-    explicacion =
-      'Solo cambia en ' + carrera + '. ' + otras.map(corto).join(', ') + ' conservan «' + materia +
-      '», y las asesorías ya registradas siguen con ese nombre.'
-  }
 
   return (
     <form
@@ -105,11 +91,8 @@ function Renombrar({ materia, carrera, otras, uso, conocidas, puedeEnTodas, fijo
         </label>
       )}
 
-      {valido && (
-        <p className="text-xs text-zinc-500 mt-2">
-          {coincide && <span className="text-acento">Ya existe «{coincide}»: se unificará con esa materia. </span>}
-          {explicacion}
-        </p>
+      {valido && coincide && (
+        <p className="text-xs text-acento mt-2">Ya existe «{coincide}»: se unificará con esa materia.</p>
       )}
     </form>
   )
@@ -164,11 +147,6 @@ function Materias({ yo, api, catalogo, agregarMateria, quitarMateria, renombrarM
   const encabezado = (
     <>
       <h1 className="text-2xl font-bold">Materias</h1>
-      <p className="text-sm text-zinc-400 mt-1">
-        {esCoordinador
-          ? 'Las materias de tu programa: ' + (yo.programa || 'sin asignar') + '. Puedes agregar, renombrar y quitar.'
-          : 'El plan oficial de cada carrera con los ajustes de coordinación.'}
-      </p>
 
       {!esCoordinador && (
         <select value={elegida} onChange={(e) => setElegida(e.target.value)} className={claseCampo + ' mt-6'}>
@@ -428,9 +406,6 @@ function Materias({ yo, api, catalogo, agregarMateria, quitarMateria, renombrarM
 
       <div className="bg-tarjeta border border-borde rounded-2xl p-4 mt-6">
         <p className="text-sm font-semibold">Agregar materia a {carrera.nombre}</p>
-        <p className="text-xs text-zinc-500 mt-0.5">
-          Busca una materia que ya se vea en otra carrera, o escribe el nombre de una nueva.
-        </p>
         <form onSubmit={alEnviar} className="mt-3">
           <input
             type="text"
@@ -517,11 +492,7 @@ function Materias({ yo, api, catalogo, agregarMateria, quitarMateria, renombrarM
 
       {filtro === 'todas' ? (
         <>
-          {seccion(
-            'Comunes con otras carreras',
-            'Se ven en varias carreras y cuentan en los reportes de cada una. Ordenadas de la más compartida a la menos.',
-            comunes
-          )}
+          {seccion('Comunes con otras carreras', null, comunes)}
           {seccion('Solo en ' + carrera.nombre, null, propias)}
         </>
       ) : (

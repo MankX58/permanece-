@@ -176,7 +176,6 @@ function PortalMentores({
   const pendientes = libres
     .filter((solicitud) => puedeAtender(solicitud.materia))
     .sort((a, b) => urgencias.indexOf(a.urgencia) - urgencias.indexOf(b.urgencia) || a.id - b.id)
-  const fueraDeAlcance = libres.length - pendientes.length
   const reservadas = solicitudes.filter(
     (solicitud) => solicitud.aceptadaPorMi && !solicitud.atendida && !solicitud.asesoriaId
   )
@@ -433,7 +432,6 @@ function PortalMentores({
                 {calificacion || '—'}
                 <span className="text-base text-acento"> / 5</span>
               </p>
-              <p className="text-xs text-zinc-500 mt-2">La tendencia aparece con dos sesiones valoradas o más.</p>
             </div>
           )}
         </motion.div>
@@ -452,11 +450,6 @@ function PortalMentores({
             {pendientes.length === 0 && (
               <p className="text-sm text-zinc-500 bg-tarjeta border border-dashed border-borde rounded-xl p-5">
                 No hay solicitudes pendientes{alcance !== null ? ' de tus materias' : ''}.
-              </p>
-            )}
-            {alcance !== null && !sinMaterias && fueraDeAlcance > 0 && (
-              <p className="text-xs text-zinc-500 mb-3">
-                Ves solo las solicitudes de tus materias asignadas ({fueraDeAlcance} de otras materias quedan para otros mentores).
               </p>
             )}
 
@@ -635,9 +628,6 @@ function PortalMentores({
                             cambiar={(campo, valor) => setEditando({ ...editando, [campo]: valor })}
                             className={claseCampo + ' bg-tarjeta'}
                           />
-                          <p className="md:col-span-2 text-xs text-zinc-500">
-                            Los estudiantes inscritos recibirán un aviso con los cambios.
-                          </p>
                           <div className="md:col-span-2 flex justify-end gap-4 items-center">
                             <button type="button" onClick={() => setEditando(null)} className={claseAccion}>
                               Cerrar

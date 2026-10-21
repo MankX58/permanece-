@@ -116,7 +116,6 @@ function MisSolicitudes({
   return (
     <div className="max-w-3xl">
       <h1 className="text-2xl font-bold">Mis Solicitudes</h1>
-      <p className="text-sm text-zinc-400 mt-1">Tus próximas sesiones y las asesorías que has pedido.</p>
 
       <div className="flex items-center gap-3 mt-8 mb-4">
         <h2 className="text-lg font-bold">Próximas sesiones</h2>
@@ -247,7 +246,6 @@ function MisSolicitudes({
           >
             <div>
               <SelectorMateria catalogo={catalogo} value={materia} onChange={setMateria} className={claseCampo} />
-              {carrera && <p className="text-[11px] text-zinc-500 mt-1">Materias de {carrera}</p>}
             </div>
             <select value={urgencia} onChange={(e) => setUrgencia(e.target.value)} className={claseCampo}>
               {urgencias.map((opcion) => (
@@ -263,7 +261,7 @@ function MisSolicitudes({
               className={claseCampo + ' md:col-span-2'}
             />
             <div className="md:col-span-2">
-              <p className="text-xs text-zinc-400 mb-1.5">¿Cuándo te sirve? El mentor puede aceptarlo o proponerte otro horario.</p>
+              <p className="text-xs text-zinc-400 mb-1.5">¿Cuándo te sirve?</p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <input
                   required
@@ -463,16 +461,13 @@ function MisSolicitudes({
                           {propuesta.virtual ? <Video size={13} /> : <MapPin size={13} />}
                           {propuesta.virtual ? 'Virtual' : propuesta.lugar}
                         </p>
-                        <p className="text-xs text-zinc-500 mt-1">
-                          Si lo aceptas, queda agendada. Si no te sirve, la solicitud vuelve a estar disponible para otros mentores.
-                        </p>
                       </div>
                     </div>
 
                     {rechazando?.id === solicitud.id ? (
                       <form onSubmit={rechazar} className="mt-4 bg-fondo border border-borde rounded-xl p-3">
                         <p className="text-xs text-zinc-400 mb-2">
-                          ¿Quieres sugerir otro horario? Es opcional; si lo dejas vacío se mantiene el que habías sugerido.
+                          Otro horario (opcional)
                         </p>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                           <input

@@ -41,7 +41,6 @@ function BancoAsesorias({ asesorias, inscribir, cancelar, abrirDetalle, catalogo
   return (
     <div>
       <h1 className="text-2xl font-bold">Banco de Asesorías</h1>
-      <p className="text-sm text-zinc-400 mt-1">Encuentra sesiones disponibles e inscríbete.</p>
 
       <div className="flex flex-col xl:flex-row gap-3 bg-tarjeta border border-borde rounded-xl p-2.5 mt-6">
         <div className="flex-1 flex items-center gap-2.5 border border-borde rounded-lg px-3 focus-within:border-acento transition-colors">

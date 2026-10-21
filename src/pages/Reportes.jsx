@@ -105,13 +105,6 @@ function Reportes({ yo, api }) {
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Reportes</h1>
-          <p className="text-sm text-zinc-400 mt-1">
-            {esCoordinador
-              ? yo.programa
-                ? 'Asesorías por materia de tu programa: ' + yo.programa + '.'
-                : 'Aún no tienes un programa asignado.'
-              : 'Asesorías, asistencia y demanda por materia y por programa.'}
-          </p>
         </div>
         <motion.button
           {...toque}
@@ -259,7 +252,6 @@ function Reportes({ yo, api }) {
                   </tbody>
                 </table>
               </div>
-              <p className="text-xs text-zinc-500 mt-2">Pulsa un programa para ver el detalle de sus materias.</p>
             </section>
           )}
 
@@ -347,12 +339,6 @@ function Reportes({ yo, api }) {
                 <p className="text-sm text-zinc-500 p-5">No hay materias que coincidan con el filtro.</p>
               )}
             </div>
-
-            <p className="text-xs text-zinc-500 mt-3">
-              % de asistencia = asistieron ÷ (asistieron + no asistieron); no cuenta las sesiones sin registrar. Una
-              materia compartida por varios programas se cuenta en cada uno. El informe es agregado: no incluye nombres
-              de estudiantes.
-            </p>
           </section>
         </>
       )}
