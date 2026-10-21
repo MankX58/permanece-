@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth0 } from '@auth0/auth0-react'
 import { motion, AnimatePresence, MotionConfig } from 'motion/react'
 import { CircleCheck, CircleAlert } from 'lucide-react'
@@ -7,6 +7,8 @@ import Header from './components/Header.jsx'
 import Cargando from './components/Cargando.jsx'
 import Login from './pages/Login.jsx'
 import PanelPrincipal from './pages/PanelPrincipal.jsx'
+import PanelMentor from './pages/PanelMentor.jsx'
+import PanelGestion from './pages/PanelGestion.jsx'
 import BancoAsesorias from './pages/BancoAsesorias.jsx'
 import MisSolicitudes from './pages/MisSolicitudes.jsx'
 import PortalMentores from './pages/PortalMentores.jsx'
@@ -41,17 +43,8 @@ function App() {
   // En pantallas pequeñas el menú lateral es un cajón que se abre desde la cabecera.
   const [menuAbierto, setMenuAbierto] = useState(false)
   const [introVistaLocal, setIntroVistaLocal] = useState(null)
-  const inicioHecho = useRef(false)
 
   const cerrarDetalle = useCallback(() => setDetalleId(null), [])
-
-  // Coordinador y admin entran directo a los reportes: no atienden asesorías.
-  useEffect(() => {
-    if (datos && !inicioHecho.current) {
-      inicioHecho.current = true
-      if (['coordinador', 'admin'].includes(datos.yo.rol)) setPagina('reportes')
-    }
-  }, [datos])
 
   function irA(destino) {
     setDetalleId(null)
@@ -288,8 +281,14 @@ function App() {
   // Admin y coordinador gestionan la plataforma: no piden ni dan asesorías, así que no ven las páginas de
   // estudiante ni el portal de mentores. Cualquier otra página los lleva a Reportes.
   const esGestion = esAdmin || esCoordinador
-  const paginasDeGestion = ['reportes', 'materias', 'especialidades', 'usuarios', 'privacidad', 'ayuda']
-  const paginaVisible = esGestion && !paginasDeGestion.includes(pagina) ? 'reportes' : pagina
+  // El docente solo da asesorías: ve su panel, su calendario y el portal de mentores.
+  const esDocente = yo.rol === 'docente'
+  const permitidas = esGestion
+    ? ['panel', 'reportes', 'materias', 'especialidades', 'usuarios', 'privacidad', 'ayuda']
+    : esDocente
+      ? ['panel', 'calendario', 'mentores', 'privacidad', 'ayuda']
+      : null
+  const paginaVisible = permitidas && !permitidas.includes(pagina) ? 'panel' : pagina
   const detalle = asesorias.find((asesoria) => asesoria.id === detalleId)
   // Un estudiante sin carrera la elige antes de todo (también los que ya existían). La restricción depende del
   // rol: el estudiante pide asesorías solo de su carrera; los demás roles tienen sus propias reglas.
@@ -382,7 +381,13 @@ function App() {
   } else if (paginaVisible === 'ayuda') {
     contenido = <CentroAyuda verIntroduccion={() => setVerIntroduccion(true)} />
   } else if (esGestion) {
-    contenido = <Reportes yo={yo} api={api} />
+    contenido = (
+      <PanelGestion yo={yo} usuarios={usuarios} mentores={mentores || []} catalogo={catalogo} api={api} setPagina={irA} />
+    )
+  } else if (esDocente) {
+    contenido = (
+      <PanelMentor yo={yo} asesorias={asesorias} solicitudes={solicitudes} setPagina={irA} abrirDetalle={setDetalleId} />
+    )
   } else {
     contenido = (
       <PanelPrincipal
@@ -424,6 +429,7 @@ function App() {
             irA(destino)
           }}
           esMentor={esMentor}
+          esDocente={esDocente}
           esAdmin={esAdmin}
           esCoordinador={esCoordinador}
         />

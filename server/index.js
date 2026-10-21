@@ -62,8 +62,8 @@ function soloRoles(...roles) {
 // Admins y coordinadores no atienden asesorías: el portal de mentores es solo para mentores y docentes.
 const soloMentores = soloRoles('mentor', 'docente')
 const soloAdmin = soloRoles('admin')
-// Pedir asesorías e inscribirse es de estudiantes (y de mentores o docentes que también estudian).
-const soloAsesorados = soloRoles('estudiante', 'mentor', 'docente')
+// Pedir asesorías e inscribirse es de estudiantes y de mentores (que también estudian); el docente solo da asesorías.
+const soloAsesorados = soloRoles('estudiante', 'mentor')
 const soloReportes = soloRoles('admin', 'coordinador')
 const soloCoordinacion = soloRoles('admin', 'coordinador')
 

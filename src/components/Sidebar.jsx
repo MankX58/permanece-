@@ -40,11 +40,20 @@ function Enlace({ id, texto, icono: Icono, pagina, setPagina }) {
   )
 }
 
-function Sidebar({ abierto, pagina, setPagina, esMentor, esAdmin, esCoordinador }) {
+function Sidebar({ abierto, pagina, setPagina, esMentor, esDocente, esAdmin, esCoordinador }) {
   // Cada grupo corresponde a un rol; cada persona ve solo los grupos que le tocan.
-  // Admin y coordinador no ven el grupo de estudiante: no piden asesorías.
+  // Admin y coordinador no ven el grupo de estudiante: no piden asesorías. El docente solo da asesorías.
   const grupos = []
-  if (!esAdmin && !esCoordinador) {
+  if (esDocente) {
+    grupos.push({
+      titulo: 'Docente',
+      enlaces: [
+        { id: 'panel', texto: 'Panel principal', icono: LayoutGrid },
+        { id: 'calendario', texto: 'Calendario', icono: CalendarDays },
+        { id: 'mentores', texto: 'Portal de mentores', icono: Users },
+      ],
+    })
+  } else if (!esAdmin && !esCoordinador) {
     grupos.push({
       titulo: 'Estudiante',
       enlaces: [
@@ -56,7 +65,7 @@ function Sidebar({ abierto, pagina, setPagina, esMentor, esAdmin, esCoordinador 
     })
   }
 
-  if (esMentor) {
+  if (esMentor && !esDocente) {
     grupos.push({
       titulo: 'Mentor',
       enlaces: [{ id: 'mentores', texto: 'Portal de mentores', icono: Users }],
@@ -66,6 +75,7 @@ function Sidebar({ abierto, pagina, setPagina, esMentor, esAdmin, esCoordinador 
     grupos.push({
       titulo: 'Coordinador',
       enlaces: [
+        { id: 'panel', texto: 'Panel principal', icono: LayoutGrid },
         { id: 'reportes', texto: 'Reportes', icono: ChartColumn },
         { id: 'materias', texto: 'Materias', icono: Library },
         { id: 'especialidades', texto: 'Mentores y materias', icono: UserCog },
